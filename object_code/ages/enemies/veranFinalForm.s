@@ -415,14 +415,16 @@ veranFinal_turtleForm_stateA:
 	call checkLinkVulnerable
 	ret nc
 
+	;desactiva menú y objetos
 	ld a,$01
 	ld (wMenuDisabled),a
 	ld (wDisabledObjects),a
 
-	call dropLinkHeldItem
-	call clearAllParentItems
+	call dropLinkHeldItem ;le quitas el objeto activo a Link
+	call clearAllParentItems ;limpias de pantalla todos los proyectiles y demás que hayan creado o el jugador o Veran
 	call ecom_incSubstate
 
+	;Checkea si el juego está linkado con el Seasons y muestra un texto u otro dependendiendo del caso
 	call checkIsLinkedGame
 	ld bc,TX_5615
 	jr z,+
@@ -430,38 +432,49 @@ veranFinal_turtleForm_stateA:
 +
 	jp showText
 
-@substate1:
+@substate1: ;checkea si ha terminado el texto y si sí crea el halo de energía alrededor de Veran y un contador de 40 frames
 	ld a,(wTextIsActive)
 	or a
-	ret nz
-	call ecom_incSubstate
+	ret nz ;mientras el texto siga activo (!= 0) sale de la funcióm
+	call ecom_incSubstate ;aumenta el valor del subestado en memoria
+
+	;contador
 	ld l,Enemy.counter2
 	ld (hl),40
+
+	;guarda la posición del enemigo
 	ld l,Enemy.yh
 	ld b,(hl)
 	ld l,Enemy.xh
 	ld c,(hl)
-	ld a,$ff
-	jp createEnergySwirlGoingOut
+	
+	ld a,$ff ;no parece necesario porque en la función de createEnergySwirlGoingOut se cambia a = 1.
+	jp createEnergySwirlGoingOut ;crea el círculo de energía saliendo de Veran
 
-@substate2:
-	call ecom_decCounter2
-	ret nz
-	ldbc INTERAC_MISC_PUZZLES, $21
+@substate2: ;después de 40 frames se hace un fade a blanco a la vez que salen explosiones en pantalla
+	call ecom_decCounter2 ;decrementa el contador anterior
+	ret nz ;mientras no sea 0, se sale de la función y no ejecuta el resto del código
+	ldbc INTERAC_MISC_PUZZLES, $21 ;crea las explosiones mientras se hace el fade out
 	call objectCreateInteraction
-	ret nz
-	jp ecom_incSubstate
+	ret nz ;Si falla la creación, sale porque objectCreateInteraction devuelve nz if there wasn't a free slot for the interaction
+	jp ecom_incSubstate 
 
-@substate3:
-	ld a,(wPaletteThread_mode)
+@substate3: ;cuando se termina el fade a blanco del todo se marca a Veran como muerto, se borra y se inicia la cutscene
+	ld a,(wPaletteThread_mode) ;si es 0 es que no hay fade activo 
 	or a
-	ret nz
+	ret nz ;si es 0 se sigue con el código
+
+	;marca que Veran ha muerto para que vuelva a salir si vuelves a la sala
 	ld hl,wGroup4RoomFlags+(<ROOM_AGES_4fc)
 	set 7,(hl)
+
+	;inicia el cutscene
 	ld a,CUTSCENE_BLACK_TOWER_ESCAPE
 	ld (wCutsceneTrigger),a
-	call incMakuTreeState
-	jp enemyDelete
+
+	call incMakuTreeState ;incrementa el valor del estado del maku tree para que nos muestre un texto distinto al hablar con él
+
+	jp enemyDelete ;borra a Veran
 
 
 veranFinal_spiderForm:
