@@ -1304,7 +1304,7 @@ miscPuzzles_subid20:
 
 
 
-; Creates explosions while screen is fading out; used in some cutscene?
+; Creates explosions while screen is fading out
 miscPuzzles_subid21:
 	call checkInteractionState
 	jr z,@state0

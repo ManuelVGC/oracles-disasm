@@ -465,8 +465,8 @@ veranFinal_turtleForm_stateA:
 	ret nz ;si es 0 se sigue con el código
 
 	;marca que Veran ha muerto para que vuelva a salir si vuelves a la sala
-	ld hl,wGroup4RoomFlags+(<ROOM_AGES_4fc)
-	set 7,(hl)
+	ld hl,wGroup4RoomFlags+(<ROOM_AGES_4fc) ;se carga en hl la dirección de memoria de wGroup4RoomFlags+(<ROOM_AGES_4fc)
+	set 7,(hl) ;se pone a 1 el bit de la dirección de memoria a la que apunta hl
 
 	;inicia el cutscene
 	ld a,CUTSCENE_BLACK_TOWER_ESCAPE
