@@ -2139,15 +2139,15 @@ data_5951:
 ; @param	e
 endgameCutsceneHandler_body:
 	ld hl,wCutsceneState
-	bit 0,(hl)
-	jr nz,+
-	inc (hl)
-	ld hl,wTmpcbb3
-	ld b,$10
-	call clearMemory
+	bit 0,(hl) ;comprueba si hay una cutscene iniciada, si no, salta al código de inicialización
+	jr nz,+ ;si ya hay una cutscene iniciada, no borra wTmpcbb3
+	inc (hl) ;cambia wCutsceneState de 0 a 1. Es decir marca que la cutscene está en progreso
+	ld hl,wTmpcbb3 ;variable temporal que se usa para guardar ciertos datos de las cutscenes, como temporizadores. Al iniciar una nueva, se limpia.
+	ld b,$10 ;ese número es para borrar todos los bytes de wTmpccb3
+	call clearMemory ;se le pasa a esta función b y hl y se limpian b bytes de la dirección de memoria hl.
 +
-	ld a,e
-	rst_jumpTable
+	ld a,e 
+	rst_jumpTable ;según el valor de e se salta a una cutscene
 	.dw endgameCutsceneHandler_09
 	.dw endgameCutsceneHandler_0a
 	.dw endgameCutsceneHandler_0f

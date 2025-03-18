@@ -47,7 +47,7 @@ incCbc2:
 
 ;;
 ; @param	e
-endgameCutsceneHandler:
+endgameCutsceneHandler: ;se trata de una función "auxliar" se usa para llamar simplemente a endgameCutsceneHandler_body pero desde otro banco
 	ldh a,(<hRomBank)
 	push af
 	callfrombank0 bank3Cutscenes.endgameCutsceneHandler_body

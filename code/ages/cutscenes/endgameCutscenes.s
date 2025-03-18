@@ -3,17 +3,21 @@
 ;;
 ; CUTSCENE_BLACK_TOWER_ESCAPE
 endgameCutsceneHandler_09:
-	ld de,wGenericCutscene.cbc1
+	ld de,wGenericCutscene.cbc1 ;se usa como valor para ver qué stage hay que ejecutar. Al principio se supone que es 0.
 	ld a,(de)
 	rst_jumpTable
 	.dw endgameCutsceneHandler_09_stage0
 	.dw endgameCutsceneHandler_09_stage1
 
 
+;Entra en endgameCutsceneHandler_09_stage0, se ejecuta updateStatusBar, se ejecuta @runStates, allí se mira cbc2 y se entra en el primer estado
+;se hace state0 y dentro de él se incrementa cbc2, luego se ejecuta updateAllObjects. Siguiente frame, se ejecuta updateStatusBar, luego se entra en @runStates
+;se lee cbc2, se hace state1, se incrementa dentro de él cbc2, se ejecuta updateAllObjects, ... y así.
 endgameCutsceneHandler_09_stage0:
-	call updateStatusBar
+	call updateStatusBar ;updatea la status bar, esto no sé del todo por qué lo hace pero si lo hace es por algo. Al no usarlo desaparece la espada pero se mantiene el L-1, es raro.
 	call @runStates
-	jp updateAllObjects
+	jp updateAllObjects ;se ejecuta después de cada estado, es decir, cada frame. Si lo quitas los gráficos del juego se rompen por todas partes.
+
 
 @runStates:
 	ld de,wGenericCutscene.cbc2
@@ -505,7 +509,7 @@ endgameCutsceneHandler_09_stage1:
 
 	ld a,30
 	ld (wTmpcbb3),a
-	ld (wOpenedMenuType),a ; TODO: ???
+	ld (wOpenedMenuType),a
 	jp incCbc2
 
 @state6:
@@ -593,7 +597,7 @@ endgameCutsceneHandler_09_stage1:
 	jp fadeoutToBlackWithDelay
 
 ;;
-; CUTSCENE_FLAME_OF_DESPAIR
+; CUTSCENE_FLAME_OF_DESPAIR ;escena que pertenece ya a la parte del juego linked
 endgameCutsceneHandler_20:
 	call @runStates
 	jp updateAllObjects
@@ -1004,7 +1008,7 @@ endgameCutsceneHandler_20:
 
 
 ;;
-; CUTSCENE_ROOM_OF_RITES_COLLAPSE
+; CUTSCENE_ROOM_OF_RITES_COLLAPSE ;escena que pertenece ya a la parte del juego linked
 endgameCutsceneHandler_0f:
 	ld de,$cbc1
 	ld a,(de)

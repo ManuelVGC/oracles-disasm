@@ -5588,7 +5588,7 @@ copyW2TilesetBgPalettesToW4PaletteData:
 ;;
 copyW4PaletteDataToW2TilesetBgPalettes:
 	ld h,$08
-+++
++++ ;esto es como el endgameCutsceneHandler, es una función intermedia para ejecutar código en otro banco
 	ld l,a
 	ld a,($ff00+R_SVBK)
 	ld c,a

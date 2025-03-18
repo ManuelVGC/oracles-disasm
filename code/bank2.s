@@ -2859,8 +2859,8 @@ secretTextTable:
 ; @param h Index of function to run
 ; @param l Parameter to function
 runBank2Function:
-	ld c,l
-	ld a,h
+	ld c,l ;la l es el stage actual del endgameCutsceneHandler_09
+	ld a,h ;h = 1, setteado en updateStatusBar
 	rst_jumpTable
 	.dw loadCommonGraphics_body
 	.dw updateStatusBar_body
