@@ -308,28 +308,9 @@ interaction7f_subid00:
 	call interactionDecCounter1
 	ret nz
 
-	; Warp Link outta there
-	ld l,Interaction.var03
-	ld a,(hl)
-	add a
-	ld hl,@essenceWarps
-	rst_addDoubleIndex
-	ldi a,(hl)
-	ld (wWarpDestGroup),a
-	ldi a,(hl)
-	ld (wWarpDestRoom),a
-	ldi a,(hl)
-	ld (wWarpDestPos),a
-	ld a,(hl)
-	ld (wWarpTransition),a
-	ld a,$83
-	ld (wWarpTransition2),a
-
-	xor a
-	ld (wActiveMusic),a
-
-	jp clearStaticObjects
-
+	;inicia el cutscene
+	ld a,CUTSCENE_BLACK_TOWER_ESCAPE
+	ld (wCutsceneTrigger),a
 
 ; Each row is warp data for getting an essence.
 ;   b0: wWarpDestGroup

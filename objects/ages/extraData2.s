@@ -1,5 +1,5 @@
-objectData_blackTowerEscape_nayruAndRalph:
-	obj_Interaction $36 $03 $68 $48
+objectData_blackTowerEscape_nayruAndRalph: ;la sintaxis es id del objeto, subid, posición x, posición y
+	obj_Interaction $36 $03 $68 $48 
 	obj_Interaction $37 $05 $68 $58
 	obj_End
 

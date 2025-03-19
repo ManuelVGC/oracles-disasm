@@ -46,35 +46,50 @@ endgameCutsceneHandler_09_stage0:
 	.dw @state14
 	.dw @state15
 
+
+
+;después de que la escena esté blanca del todo cuando muere Veran, carga la sala de la Torre Negra, hace un fundido de la música, pone a Nayru, Ralph y los tiles
+;que bloquean la puerta de la torre y luego ya hace el fadeout a normal otra vez. Además, va haciendo cosas para que todos los gráficos y la memoria funcionen correctamente
 @state0:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call cutscene_clearCFC0ToCFDF
-	call incCbc2
+	ret nz ;si no es 0 es que hay un fade, este código espera a que acabe el fade para seguir
+	call cutscene_clearCFC0ToCFDF ;borra parte de la memoria
+	call incCbc2 ;aumenta el valor del estado
 
 	; Outside black tower
-	ld bc,ROOM_AGES_176
-	call disableLcdAndLoadRoom
+	;estas tres líneas básicamente cambian a la nueva sala con su música, y demás evitando errores gráficos
+	ld bc,ROOM_AGES_176 ;carga la nueva sala (fuera de la Torre Negra) en bc
+	call disableLcdAndLoadRoom ;setea la habitación actual en base al valor anterior de bc, apaga LCD para evitar problemas gráficos, limpia variables
+	;y memoria carga todos los gráficos, música y datos de la habitación, setea el tipo de scroll y prepara la OAM
 	call resetCamera
 
+	;el juego hace un fast fadeout de la música
 	ld a,SNDCTRL_FAST_FADEOUT
 	call playSound
-	call clearAllParentItems
-	call dropLinkHeldItem
 
-	ld hl,objectData.objectData_blackTowerEscape_nayruAndRalph
-	call parseGivenObjectData
-	ld hl,wGenericCutscene.cbb3
+	call clearAllParentItems;limpias de pantalla todos los proyectiles y demás
+	call dropLinkHeldItem ;le quitas el objeto activo a Link
+
+	;pone a nayru y ralph en escena
+	ld hl,objectData.objectData_blackTowerEscape_nayruAndRalph ;carga en hl la interacción de nayru y la interacción de ralph que queremos
+	call parseGivenObjectData ;crea los objetos anteriores en la escena
+
+	ld hl,wGenericCutscene.cbb3 ;es un contador
 	ld (hl),60
 
-	ld hl,blackTowerEscapeCutscene_doorBlockReplacement
-	call cutscene_replaceListOfTiles
-
-	call refreshObjectGfx
+	ld hl,blackTowerEscapeCutscene_doorBlockReplacement ;carga que quiere cambiar cuatro tiles en la escena,concretamente un bloqueo en la puerta de la Torre Negra
+	call cutscene_replaceListOfTiles ;cambia los tiles anteriores
+	;estas tres instrucciones siguientes se hacen para actualizar los gráficos que han cambiado ahora, Nayru, Ralph y los tiles de la puerta bloqueada. Luego se asegura que
+	;toda la sala se actualice correctamente en general al haber habido esos cambios
+	;cuando se reemplacen tiles o se carguen nuevos objetos habría que hacer esto
+	call refreshObjectGfx ;se asegura que los gráficos correctos estén cargados en la vram. Limpia datos previos, mira a ver cuál necesitan actualización y carga
+	;los necesarios. En este caso carga los gráficos de Nayru, Ralph y los tiles que bloquean la puerta
 	ld a,$02
-	call loadGfxRegisterStateIndex
-	jp fadeinFromWhiteToRoom
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores de añadir a Nayru y demás
+
+	jp fadeinFromWhiteToRoom ;se hace un fadein desde la pantalla blanca que habíamos dejado al final de la muerte de Veran
 
 @state1:
 	call cutscene_decCBB3IfNotFadingOut
@@ -1591,25 +1606,27 @@ endgameCutsceneHandler_0a:
 ;;
 ; Called from disableLcdAndLoadRoom in bank 0.
 ;
-disableLcdAndLoadRoom_body:
-	ld a,b
-	ld (wActiveGroup),a
+;setea la habitación actual, apaga LCD para evitar problemas gráficos, limpia variables y memoria carga todos los gráficos, música y datos de la habitación,
+;setea el tipo de scroll y prepara la OAM
+disableLcdAndLoadRoom_body: ;a esta función se le pasa bc. Será un byte o algo así y la parte de b indica el grupo de la sala y la parte de la c indica la sala que queremos de ese grupo
+	ld a,b 
+	ld (wActiveGroup),a ;se setea el grupo actual al que queremos
 	ld a,c
-	ld (wActiveRoom),a
-	call disableLcd
-	call clearScreenVariablesAndWramBank1
+	ld (wActiveRoom),a ;ponemos como sala activa la que queremos
+	call disableLcd ;apaga el LCD de la Game Boy. Básicamente se usa para que al cargar una nueva sala o actualizar gráficos todo vaya bien. Para evitar problemas gráficos
+	call clearScreenVariablesAndWramBank1 ;limpia ciertas variables y la RAM del banco 1
 	ld hl,wLinkInAir
 	ld b,wcce9-wLinkInAir
-	call clearMemory
-	call initializeVramMaps
-	call loadScreenMusicAndSetRoomPack
-	call loadTilesetData
-	call loadTilesetGraphics
+	call clearMemory ;se borra cierta sección de la RAM
+	call initializeVramMaps ;inicializa vram con un tileset parece
+	call loadScreenMusicAndSetRoomPack ;cambia la música a la música de la habitación en cuestión y carga comportamientos específicos de la sala en cuestión
+	call loadTilesetData ;carga el tileset de la sala
+	call loadTilesetGraphics ;carga ese tileset en la VRAM
 	call func_131f
 	ld a,$01
-	ld (wScrollMode),a
-	call loadCommonGraphics
-	call clearOam
+	ld (wScrollMode),a ;indica que la habitación permite scroll normal
+	call loadCommonGraphics ;recarga los gráficos que siempre están en la vram como el HUD, la espada de Link, tec
+	call clearOam ;limpia posibles residuos gráficos en la OAM
 	ld a,$10
 	ldh (<hOamTail),a
 	ret
@@ -1754,8 +1771,8 @@ cutscene_replaceListOfTiles:
 	ret
 
 blackTowerEscapeCutscene_doorBlockReplacement:
-	.db $04     ; # of entries
-	.db $44 $83 ; Position, New Tile Value
+	.db $04     ; # of entries (cuatro tiles cambiados)
+	.db $44 $83 ; Position del tile a cambiar, nuevo tile (en este caso el nuevo tile es el 83 del overworld, un muro)
 	.db $45 $83
 	.db $54 $83
 	.db $55 $83

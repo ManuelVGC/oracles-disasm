@@ -2138,7 +2138,7 @@ data_5951:
 ;
 ; @param	e
 endgameCutsceneHandler_body:
-	ld hl,wCutsceneState
+	ld hl,wCutsceneState ;ojo con que esté a 0 cuando inicies una nueva cutscene de las de abajo, sino, no limpia la memoria wTmpcbb3 y pueden pasar cosas raras
 	bit 0,(hl) ;comprueba si hay una cutscene iniciada, si no, salta al código de inicialización
 	jr nz,+ ;si ya hay una cutscene iniciada, no borra wTmpcbb3
 	inc (hl) ;cambia wCutsceneState de 0 a 1. Es decir marca que la cutscene está en progreso

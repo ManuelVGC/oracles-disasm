@@ -33,7 +33,7 @@ cutscene0c:
 ;;
 ; CUTSCENE_BLACK_TOWER_ESCAPE
 cutscene09:
-	call func_1613
+	call func_1613 ;ojo esto que puede ser interesante, justo en los créditos no lo hace. Parece imporante, si es 0 el wLoadedTreeGfxIndex no hace nada, así que no está mal quizá usarlo solo por comprobación y que no se rompan las cosas
 	ld a,(wCutsceneTrigger)
 	or a
 	jp nz,setCutsceneIndexIfCutsceneTriggerSet
