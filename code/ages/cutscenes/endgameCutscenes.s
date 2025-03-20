@@ -91,30 +91,38 @@ endgameCutsceneHandler_09_stage0:
 
 	jp fadeinFromWhiteToRoom ;se hace un fadein desde la pantalla blanca que habíamos dejado al final de la muerte de Veran
 
-@state1:
-	call cutscene_decCBB3IfNotFadingOut
-	ret nz
-	ld (hl),120
-	ld l,<wGenericCutscene.cbb6
-	ld (hl),$10
-	jp incCbc2
 
+;espera 60 segundos después del fade out y setea dos nuevos contadores
+@state1:
+	call cutscene_decCBB3IfNotFadingOut ;decrementa el contador anterior. Esto después del fadeout, es decir, hace 60 frames de espera después del fade out
+	ret nz
+	ld (hl),120 ;hl sigue apuntando a la dirección de wGenericCutscene.cbb3 (se hizo en el state0) y ahora se pone el contador a 120
+	ld l,<wGenericCutscene.cbb6 ;aquí solo se modifica l porque: hl apuntaba a wGenericCutscene.cbb3, apuntando h a la estructura GenericCutscene y l apunta a
+	;un byte específico de wGenericCutscene, en ese caso cbb3. Ahora h sigue apuntando a wGenericCutscene y solo queremos cambiar la l, así que solo cambiamos la l.
+	;De esa forma el código es más eficiente
+	ld (hl),$10 ;carga en wGenericCutscene.cbb6 el valor $10 (16 en decimal). Este valor lo lee también wTmpcbb6.
+	jp incCbc2 ;incrementa el contador que hace pasar al state2
+
+;durante 120 frames, cada 16 frames suena una explosión y se agita la pantalla, al terminar esos frames pasa al state3
 @state2:
 	call decCbb3
-	jr nz,@updateExplosionSoundsAndScreenShake
-	ld (hl),60
+	jr nz,@updateExplosionSoundsAndScreenShake ;mientras que el contador de 120 no termine, se sigue llamando a esta función
+	ld (hl),60 ;wTmpcbb6 se pone a 60?? No cuadra con el state3 porque decrementaría el cbb3 que ya está a 0
 	jp incCbc2
 
+;cada 16 frames hay una explosión y se agita la pantalla (wTmpcbb6 se carga todo el rato a 16 y en 0 suena una explosión y se agita la pantalla)
 @updateExplosionSoundsAndScreenShake:
-	ld hl,wTmpcbb6
-	dec (hl)
-	ret nz
-	ld (hl),$10
-	ld a,SND_EXPLOSION
-	call playSound
-	ld a,$08
-	call setScreenShakeCounter
-	xor a
+	ld hl,wTmpcbb6 ;wTmpcbb6 empieza en 16 por lo que explico ahora: se carga la dirección de wTmpcbb6 en hl. wTmpcbb6 parece que apunta a la misma dirección que wGenericCutscene.cbb6 así que es 16 por el código
+	;del state1. O sea parece que tanto wTmpcbb6 como wGenericCutscene.cbb6 tienen la misma posición en memoria. Parece que cuando se modifica una se modifica otra
+	;al menos eso parece cumplirse en que wTmpcbb6 cambia cuando cambia el valor de cbb6. Por eso, en esta línea en concreto wTmpcbb6 empieza en 16.
+	dec (hl) ;se decrementa su valor
+	ret nz ;si no es 0 se sale
+	ld (hl),$10 ;se pone a 16 wTmpcbb6
+	ld a,SND_EXPLOSION 
+	call playSound ;se reproduce sonido de explosión
+	ld a,$08 
+	call setScreenShakeCounter ;se shakea la pantalla
+	xor a ;pone a a 0
 	ret
 
 @state3:
@@ -1694,10 +1702,10 @@ cutscene_decCBB3IfTextNotActive:
 
 ;;
 cutscene_decCBB3IfNotFadingOut:
-	ld a,(wPaletteThread_mode)
+	ld a,(wPaletteThread_mode) 
 	or a
-	ret nz
-	jp decCbb3
+	ret nz ;si wPaletteThread_mode = 0, es decir, si ya no hay fadeout
+	jp decCbb3 ;decrementa cbb3
 
 
 cutscene_decCBB3IfNotFadingOut_incState_setCBB3_showText:
