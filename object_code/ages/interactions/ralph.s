@@ -580,7 +580,9 @@ ralphSubid04:
 
 ;;
 ; Cutscene in black tower where Nayru/Ralph meet you to try to escape
-ralphSubid05:
+ralphSubid05: ;funciona como el subID 03 de Nayru. Hace alguna cosa distinta como moverse a la derecha donde Nayru se mueve hacia la izquierda o mostrar texto distinto
+
+;para coordinarse quién habla de los dos y tal usan la variable cfd0, la cual van cambiando y comprobando
 	call interactionAnimateBasedOnSpeed
 	ld e,Interaction.substate
 	ld a,(de)
@@ -594,7 +596,7 @@ ralphSubid05:
 @substate0:
 	ld a,($cfd0)
 	cp $01
-	ret nz
+	ret nz ;si cfd0 es 1 sigue con el código
 	call startJump
 	jp interactionIncSubstate
 
@@ -609,7 +611,7 @@ ralphSubid05:
 @substate2:
 	ld a,($cfd0)
 	cp $02
-	jp nz,interactionRunScript
+	jp nz,interactionRunScript ;si cfd0 es 2 (lo pone Nayru a 2 cuando termina su primer diálogo), el código sigue.
 	call startJump
 	jp interactionIncSubstate
 

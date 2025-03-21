@@ -642,22 +642,23 @@ nayruSubid03:
 	.dw @substate2
 
 @substate0:
-	ld a,($cfd0)
-	cp $01
-	ret nz
-	call startJump
+	ld a,($cfd0) 
+	cp $01 
+	ret nz ;si cfd0 es 1 entonces sigue el script, sino sale. Esto se hace cada frame de forma que evalúas constantemente lo que tiene que hacer Nayru.
+	call startJump ;nayru inicia el salto
 	jp interactionIncSubstate
 
 @substate1:
-	ld c,$24
-	call objectUpdateSpeedZ_paramC
+	ld c,$24 
+	call objectUpdateSpeedZ_paramC ;termina el salto
 	ret nz
-	ld hl,mainScripts.nayruScript03
+	ld hl,mainScripts.nayruScript03 ;carga el script de Nayru moviéndose hacia la izquierda y luego mostrando dos textos. Además, mueve la dirección de Link cuando
+	;es necesario
 	call interactionSetScript
 	jp interactionIncSubstate
 
 @substate2:
-	jp interactionRunScript
+	jp interactionRunScript ;corre el script anterior
 
 
 ;;

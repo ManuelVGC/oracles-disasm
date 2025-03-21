@@ -2180,8 +2180,8 @@ ralphSubid05Script:
 	showtext TX_2a11
 	wait 20
 
-	writememory   wTmpcfc0.genericCutscene.cfd0, $03
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $04
+	writememory   wTmpcfc0.genericCutscene.cfd0, $03 ;pone a 3 el cfd0. Nayru lee esto y sigue con su código de su segundo texto
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $04 ;si cfd0 es 4 sigue el código. cfd0 lo pone Nayru a 4 cuando terminan ambos el diálogo con Link.
 	wait 50
 
 	setspeed SPEED_100
@@ -2190,7 +2190,7 @@ ralphSubid05Script:
 	movedown $28
 	wait 60
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $05
+	writememory wTmpcfc0.genericCutscene.cfd0, $05 ;al salir de la escena ambos por abajo pone Ralph el cfd0 a 5
 	scriptend
 
 

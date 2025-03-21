@@ -72,7 +72,7 @@ endgameCutsceneHandler_09_stage0:
 	call dropLinkHeldItem ;le quitas el objeto activo a Link
 
 	;pone a nayru y ralph en escena
-	ld hl,objectData.objectData_blackTowerEscape_nayruAndRalph ;carga en hl la interacción de nayru y la interacción de ralph que queremos
+	ld hl,objectData.objectData_blackTowerEscape_nayruAndRalph ;carga en hl la interacción de nayru y la interacción de ralph con el subid que queremos
 	call parseGivenObjectData ;crea los objetos anteriores en la escena
 
 	ld hl,wGenericCutscene.cbb3 ;es un contador
@@ -107,7 +107,7 @@ endgameCutsceneHandler_09_stage0:
 @state2:
 	call decCbb3
 	jr nz,@updateExplosionSoundsAndScreenShake ;mientras que el contador de 120 no termine, se sigue llamando a esta función
-	ld (hl),60 ;wTmpcbb6 se pone a 60?? No cuadra con el state3 porque decrementaría el cbb3 que ya está a 0
+	ld (hl),60 ;cbb3 se pone a 60. El cambio de hl en updateExplosionSoundsAndScreenShake solo afecta a dentro de la función. Es temporal.
 	jp incCbc2
 
 ;cada 16 frames hay una explosión y se agita la pantalla (wTmpcbb6 se carga todo el rato a 16 y en 0 suena una explosión y se agita la pantalla)
@@ -125,45 +125,56 @@ endgameCutsceneHandler_09_stage0:
 	xor a ;pone a a 0
 	ret
 
+;espera 60 frames antes de mostrar un texto
 @state3:
-	call decCbb3
-	ret nz
-	ld (hl),30
-	ld bc,TX_1d0a
-	call showText
+	call decCbb3 
+	ret nz ;espera 60 frames
+	ld (hl),30 ;se recarga el contador a 30
+	ld bc,TX_1d0a 
+	call showText ;muestra texto
 	jp incCbc2
 
+;pone 30 frames donde no pasa nada después de que el texto desaparezca 
 @state4:
-	call cutscene_decCBB3IfTextNotActive
-	ret nz
-	ld (hl),120
-	ld l,<wGenericCutscene.cbb6
-	ld (hl),$10
+	call cutscene_decCBB3IfTextNotActive ;decrementa cbb3 si no hay texto activo
+	ret nz ;espera 30 frames después de que desaparezca el texto
+	ld (hl),120 ;recarga el contador a 120.
+	ld l,<wGenericCutscene.cbb6 ;se guarda en hl la dirección de cbb6
+	ld (hl),$10 ;se carga cbb6 a 16
 	jp incCbc2
 
+
+;reproduce explosiones y agita la pantalla cada 16 frames. Luego pone a Link en la posición detrás del muro bloqueado, hace que Link mire hacia abajo y se configura
+; para que haga el input de salir de la Torre Negra en el siguiente ciclo. Además quita el muro.
 @state5:
 	call decCbb3
-	jr nz,@explosions
+	jr nz,@explosions ;cada frame de 120 frames llama a la función. Cada 16 frames hay una explosión y se agita la pantalla.
 
-	ld (hl),40
+	ld (hl),40 ;se recarga cbb3 a 40
 	call incCbc2
 
 	ld hl,w1Link.enabled
-	ld (hl),$03
+	ld (hl),$03  ;parece que habilita a Link
+
+	;establece la posición de Link
 	ld l,<w1Link.yh
 	ld (hl),$48
 	ld l,<w1Link.xh
 	ld (hl),$50
+
+	;establece la dirección de Link hacia abajo
 	ld l,<w1Link.direction
 	ld (hl),DIR_DOWN
 
+	;realiza un input predefinidos de Link. En este caso el input es Link saliendo de la Torre Negra.
 	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput1
 	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput1
 	call setSimulatedInputAddress
 
-	ld hl,blackTowerEscapeCutscene_doorOpenReplacement
-	jp cutscene_replaceListOfTiles
+	ld hl,blackTowerEscapeCutscene_doorOpenReplacement ;carga que quiere cambiar los tiles de muro bloqueando la puerta por tiles de puerta abierta
+	jp cutscene_replaceListOfTiles ;cambia los tiles anteriores
 
+;cada 16 frames suena una explosión y se agita la pantalla. Después de cada 16 frames como updateExplosionSoundsAndScreenShake sale con 0 aparece una explosión en pantalla
 @explosions:
 	call @updateExplosionSoundsAndScreenShake
 	ret nz
@@ -172,35 +183,42 @@ endgameCutsceneHandler_09_stage0:
 	ld (hl),INTERAC_EXPLOSION_WITH_DEBRIS
 	inc l
 	inc l
-	inc (hl) ; [var03] = $01
+	inc (hl) 
 	ld a,$01
-	ld (wTmpcfc0.genericCutscene.cfd0),a
+	ld (wTmpcfc0.genericCutscene.cfd0),a ;esto pone a 1 cfd0. Sirve para iniciar cierto comportamiento de Nayru y Ralph. La cosa es que Nayru y Ralph son un objeto
+	;interacción que tienen un código asociado (nayru.s --> nayruSubid03 y ralph.s --> ralphSubid05). Ese código espera a que cfd0 sea 1 para hacer cosas.
 	ret
 
+;cada 16 frames durante 40 frames hay una explosión y se agita la pantalla. Al terminar se procesa ya el movimiento de Link. Se hace después de las explosiones
+;porque según parece estas tienen prioridad al seguir inmediatamente con las explosiones de antes. No se ejecuta el movimiento de Link por esa prioridad rara.
 @state6:
 	call decCbb3
-	jr nz,@explosions
+	jr nz,@explosions ;cada frame de 40 frames se llama a explosions y cada 16 frames aparece una explosión y se agita la pantalla.
 	jp incCbc2
 
+
+;comprueba si Nayru y Ralph han terminado su diálogo con Link y si es así Link sale de la escena con ellos.
 @state7:
-	; Wait for signal from an object?
-	ld a,(wTmpcfc0.genericCutscene.cfd0)
-	cp $04
+	ld a,(wTmpcfc0.genericCutscene.cfd0) 
+	cp $04 ;compara cfd0 con cuatro y mientras que no sea no avanza en el código. Si la comparación falla devuelve 0.
+	;esa variable la pone a 4 Nayru cuando termina su segundo texto, es decir, el final del diálogo ya con Nayru y Ralph, pero antes de que abandonen la escena.
 	ret nz
 
 	call incCbc2
-	xor a
+	xor a ;pone a a 0
 	ld (wDisabledObjects),a
 	ld (wScrollMode),a
 
+	;hace un input predefinido de Link. En este caso es irse de la escena hacia abajo
 	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput2
 	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput2
 	jp setSimulatedInputAddress
 
+;cuando los tres han abandonado la escena, se hace un fadeout a blanco.
 @state8:
 	ld a,(wTmpcfc0.genericCutscene.cfd0)
 	cp $05
-	ret nz
+	ret nz ;cuando cfd0 sea 5, el código sigue. cfd0 lo pone Ralph a 5 en scripts.s --> ralphSubid05Script cuando abandona la escena
 	call incCbc2
 	jp fadeoutToWhite
 
@@ -243,6 +261,7 @@ endgameCutsceneHandler_09_stage0:
 	ld l,<w1Link.direction
 	ld (hl),DIR_UP
 
+	;hace un input predefinido de Link. En este caso es caminar hacia los guardias de Ambi
 	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput3
 	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput3
 	call setSimulatedInputAddress

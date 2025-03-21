@@ -1127,8 +1127,9 @@ nayruScript03:
 
 	showtext TX_1d0b
 	wait 20
-	writememory   wTmpcfc0.genericCutscene.cfd0, $02
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $03
+	writememory   wTmpcfc0.genericCutscene.cfd0, $02 ;pone cfd0 a 2. ralph.s --> ralphSubid05 lee que si es 2 hace él cosas.
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $03 ;cuando cfd0 sea 3, sigue el código. cfd0 lo pone a 3 Ralph en ralph.s --> ralphSubid05 cuando
+	;termina su diálogo
 
 	asm15 forceLinkDirection, DIR_LEFT
 	wait 10
@@ -1137,10 +1138,10 @@ nayruScript03:
 	writememory wTmpcfc0.genericCutscene.cfd0, $04
 	wait 16
 
+	;Nayru se mueve a al derecha y abajo para abandonar la escena
 	setspeed SPEED_100
 	moveright $10
 	wait 6
-
 	movedown $28
 	scriptend
 
