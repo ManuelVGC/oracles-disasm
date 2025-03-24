@@ -44,6 +44,8 @@ interactionCode4d:
 	jp nz,ambi_loadScript
 	call checkIsLinkedGame
 	ret nz
+
+	;cuando cfd0 sea 0b se hace este script. 
 	ld hl,mainScripts.ambiSubid01Script_part2
 	jp interactionSetScript
 

@@ -85,7 +85,7 @@ endgameCutsceneHandler_09_stage0:
 	;cuando se reemplacen tiles o se carguen nuevos objetos habría que hacer esto
 	call refreshObjectGfx ;se asegura que los gráficos correctos estén cargados en la vram. Limpia datos previos, mira a ver cuál necesitan actualización y carga
 	;los necesarios. En este caso carga los gráficos de Nayru, Ralph y los tiles que bloquean la puerta
-	ld a,$02
+	ld a,$02 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
 	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
 	;estado gráfico de toda la pantalla después de hacer los cambios anteriores de añadir a Nayru y demás
 
@@ -222,36 +222,46 @@ endgameCutsceneHandler_09_stage0:
 	call incCbc2
 	jp fadeoutToWhite
 
+
+;como el state0 pero cambiando a otra sala. Mientras está la pantalla blanca aprovecha para hacer el cambio de sala, poner a Ambi y los guardias y demás.
 @state9:
+	;espera a que se termine el fadeout para seguir con el código
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz 
 
 	call incCbc2
 
-	ld bc,ROOM_AGES_165
-	call disableLcdAndLoadRoom
+	
+	ld bc,ROOM_AGES_165 ;carga la nueva sala en bc
+	call disableLcdAndLoadRoom ;setea la habitación actual en base al valor anterior de bc, apaga LCD para evitar problemas gráficos, limpia variables
+	;y memoria carga todos los gráficos, música y datos de la habitación, setea el tipo de scroll y prepara la OAM
 
 	call resetCamera
 	ld a,MUS_DISASTER
 	call playSound
 
-	ld a,$02
-	call loadGfxRegisterStateIndex
+	ld a,$02 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores de añadir a Nayru y demás
 
-	ld hl,objectData.objectData_blackTowerEscape_ambiAndGuards
-	call parseGivenObjectData
+	ld hl,objectData.objectData_blackTowerEscape_ambiAndGuards ;carga en hl la interacción de ambi, los guardias, Nayru y Ralph con el subid que queremos
+	call parseGivenObjectData ;crea los objetos anteriores en la escena
 
 	ld hl,wTmpcbb3
-	ld (hl),30
-	jp fadeinFromWhiteToRoom
+	ld (hl),30 ;settea wTmpcbb3 a 30
+	jp fadeinFromWhiteToRoom ;fade de blanco a la sala
 
+
+;hacer que Link entre en la pantalla donde están Ambi y sus guardias.
 @stateA:
+	;30 frames después del fadeout sigue el código
 	call cutscene_decCBB3IfNotFadingOut
-	ret nz
+	ret nz 
 
 	call incCbc2
 
+	;colocas a link en una posición específica y haces que mire hacia arriba
 	ld hl,w1Link.enabled
 	ld (hl),$03
 	ld l,<w1Link.yh
@@ -261,7 +271,7 @@ endgameCutsceneHandler_09_stage0:
 	ld l,<w1Link.direction
 	ld (hl),DIR_UP
 
-	;hace un input predefinido de Link. En este caso es caminar hacia los guardias de Ambi
+	;hace un input predefinido de Link. En este caso es caminar hacia los guardias de Ambi. Link entra en pantalla.
 	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput3
 	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput3
 	call setSimulatedInputAddress
@@ -269,71 +279,95 @@ endgameCutsceneHandler_09_stage0:
 	ld (wScrollMode),a
 	ret
 
-@stateB:
-	ld a,(wTmpcfc0.genericCutscene.cfd0)
-	cp $06
-	ret nz
-	call incCbc2
-	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput4
-	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput4
-	jp setSimulatedInputAddress
 
+;después del primer texto en esta sala (TX_2a12), Link se mueve un cuadro hacia arriba
+@stateB:
+	ld a,(wTmpcfc0.genericCutscene.cfd0) 
+	cp $06 
+	ret nz ;cuando cfd0 sea 6 se sigue el código. Esto lo cambia Ralph en scripts.s --> ralphSubid06Script_part1. Que es llamado en ralph.s --> initSubid06.
+	;cada subID del objeto interacción de Ralph tiene dos fases, una inicialización y un run. Igual parece para Nayru y para Ambi.
+	;este state se hace cuando termina el primer texto de esta cutscene, el TX_2a12.
+
+	call incCbc2
+
+	ld hl,cutscenesBank10.blackTowerEscape_simulatedInput4
+	ld a,:cutscenesBank10.blackTowerEscape_simulatedInput4 
+	jp setSimulatedInputAddress ;avanza un recuadro a Link
+
+
+;modifica cfde y cfdf y hace un fade a blanco
 @stateC:
 	ld a,(wTmpcfc0.genericCutscene.cfd0)
-	cp $0a
-	ret nz
+	cp $0a ;Si es igual a 0a activa el flag z.
+	ret nz ;cuando cfd0 sea 0a, sigue el código. Esto lo pone Ambi después de decir su segundo texto, justo antes del fadeout hacia los niños jugando.
+
 	call incCbc2
 
-	; TODO: what is this?
 	ld hl,wTmpcfc0.genericCutscene.cfde
-	ld (hl),$08
-	inc l
-	ld (hl),$00
+	ld (hl),$08 ;pone cfde a 08, esto lo usa en la siguiente escena para cargar a los niños en la sala.
+	inc l ;pasa a apuntar a cfdf 
+	ld (hl),$00 ;pone cfdf a 0 ;no sé para qué lo usa porque luego en el siguiente state lo vuelve a poner a 0
 
 	jp fadeoutToWhite
 
+
+;A este estado se entra varias veces.
+; La primera vez que se entra (cfde = 8) cambia la sala y pone a los niños jugando. Después hace un fade de blanco a la sala.
+; La segunda vez (cfde = 9), cambia la sala y pone a unos conejos. Después hace un fade a blanco a la sala.
 @stateD:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando termine el fade sigue
 	call incCbc2
-	call cutscene_loadRoomObjectSetAndFadein
-	xor a
-	ld (wTmpcfc0.genericCutscene.cfd1),a
-	ld (wTmpcfc0.genericCutscene.cfdf),a
+	call cutscene_loadRoomObjectSetAndFadein ;settea la sala y los objetos interacción que le pasemos con cfde. En este caso los niños jugando con la pelota en su
+	;sala correspondiente
+	xor a ;pone a a 0
+	ld (wTmpcfc0.genericCutscene.cfd1),a ;cfd1 a 0. Lo usa con los niños que vuelven de piedra.
+	ld (wTmpcfc0.genericCutscene.cfdf),a ;cfdf a 0
 	ld a,$02
-	jp loadGfxRegisterStateIndex
+	jp loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores.
 
+
+; A este estado se entra varias veces.
+; La primera vez que se entra, se espera a que termine el fade a blanco, luego se espera a que cfdf sea ff (lo pone a ff uno de los niños cuando termina su interacción)
+; y luego aumenta el cfde en 1, pasando a ser 9 y volviendo al stateD al ser distinto de 0a.
+; La segunda vez que se entra, se espera a que termine el fade a blanco, luego se espera a que cfdf sea ff (lo pone a ff uno de los conejos cuando termina su interacción)
+; y luego aumenta el cfde en 1, pasando a ser 10 y volviendo al stateD al ser distinto de 0a.
 @stateE:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando termine el fade sigue
 	ld hl,wTmpcfc0.genericCutscene.cfdf
 	ld a,(hl)
-	cp $ff
-	ret nz
-	xor a
+	cp $ff 
+	ret nz ;mientras cfdf sea distinto de ff sale. Esto lo pone a ff el pastGuy.s --> @@substate1. Es decir, cuando termina su interacción.
+	xor a ;pone a a 0
 
-	ldd (hl),a ; wTmpcfc0.genericCutscene.cfdf
-	inc (hl) ; wTmpcfc0.genericCutscene.cfde
+	ldd (hl),a ; se pone cfdf a 0 y hl pasa a apuntar a cfde
+	inc (hl) ; se aumenta en 1 cfde
 	ld a,(hl)
-	cp $0a
-	ld a,$0d
-	jr nz,+
-	ld a,$0f
+	cp $0a ;compara cfde con 0a. Si es igual activa el flag z.
+	ld a,$0d ;se pone a a 0d
+	jr nz,+ ;mientras que a != 0a se salta a +
+	ld a,$0f ;se pone a a 0f.
 +
+	;dependiendo de la comparación anterior a tendrá 0d o 0f.
 	ld hl,wGenericCutscene.cbc2
-	ld (hl),a
+	ld (hl),a 
 	jp fadeoutToWhite
 
+; Se espera a que termine el fade a blanco, se cambia a la sala correspondiente poniendo a Ambi, sus guardias, Ralph y Nayru y se coloca también a Link.
 @stateF:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ; cuando termine el fade a blanco el código sigue
 
 	call incCbc2
-	call cutscene_loadRoomObjectSetAndFadein
+	call cutscene_loadRoomObjectSetAndFadein ;settea la sala y los objetos interacción que le pasemos con cfde. En este caso Ambi, sus guardias, Nayru y
+	; Ralph en la sala de justo antes del corte a la sala con los niños jugando con la pelota.
 
+	;Se coloca a Link en una posición y mirando hacia arriba
 	ld hl,w1Link.enabled
 	ld (hl),$03
 	ld l,<w1Link.yh
@@ -341,12 +375,13 @@ endgameCutsceneHandler_09_stage0:
 	ld l,<w1Link.xh
 	ld (hl),$60
 	ld l,<w1Link.direction
-
 	ld (hl),DIR_UP
+
 	ld a,$0b
-	ld (wTmpcfc0.genericCutscene.cfd0),a
-	ld a,$02
-	jp loadGfxRegisterStateIndex
+	ld (wTmpcfc0.genericCutscene.cfd0),a ;se pone cfd0 a 0b
+	ld a,$02 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	jp loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores.
 
 @state10:
 	call checkIsLinkedGame

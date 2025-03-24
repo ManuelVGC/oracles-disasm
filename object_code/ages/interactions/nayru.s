@@ -94,7 +94,9 @@ nayruState0:
 	ld hl,mainScripts.nayruScript02_part2
 	jp interactionSetScript
 
+; escena después de salir de la Torre Negra con Ambi y sus guardias.
 @init04:
+	;si cfd0 no es 0b hace el script part1. Que es entrar a la pantalla con Ambi y los guardias. Además pone cfd0 a 7
 	ld hl,mainScripts.nayruScript04_part1
 	ld a,($cfd0)
 	cp $0b
@@ -668,7 +670,7 @@ nayruSubid04:
 	jp z,nayruAnimateAndRunScript
 
 	ld a,($cfd0)
-	cp $0b
+	cp $0b ;
 	jr c,nayruAnimateAndRunScript
 	call interactionAnimate
 	jpab scriptHelp.turnToFaceSomething

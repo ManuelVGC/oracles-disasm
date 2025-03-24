@@ -47,7 +47,9 @@ ralphState0:
 	.dw @initSubid12
 
 
+;ralph en la cutscene después de salir de la torre Negra con Ambi y sus guardias
 @initSubid06:
+	;si cfd0 no es 0b hace el script part1. Que es entrar a la pantalla con Ambi y los guardias y mostrar un texto.
 	ld hl,mainScripts.ralphSubid06Script_part1
 	ld a,($cfd0)
 	cp $0b
@@ -60,7 +62,7 @@ ralphState0:
 
 @initSubid00:
 @initSubid05:
-	xor a
+	xor a ;pone a a 0
 
 @setAnimation:
 	call interactionSetAnimation
@@ -627,6 +629,7 @@ ralphRunScript:
 	jp interactionRunScript
 
 ;;
+; Cutscene después de salir de la torre Negra con Ambi y sus guardias.
 ralphSubid06:
 	call interactionAnimateBasedOnSpeed
 	ld e,Interaction.substate
@@ -637,9 +640,9 @@ ralphSubid06:
 	.dw ralphRunScript
 
 @substate0:
-	callab scriptHelp.objectWritePositionTocfd5
+	callab scriptHelp.objectWritePositionTocfd5  ;pone a a 0
 	ld a,($cfd0)
-	cp $08
+	cp $08 ;compara cfd0 con 8 y si es así sigue el código. Esto lo pone a 8 Ambi después de su primer texto.
 	jp nz,interactionRunScript
 	call startJump
 	jp interactionIncSubstate
@@ -649,7 +652,7 @@ ralphSubid06:
 	call objectUpdateSpeedZ_paramC
 	ret nz
 	call interactionIncSubstate
-	ld l,Interaction.var3e
+	ld l,Interaction.var3e 
 	inc (hl)
 	jr ralphRunScript
 

@@ -506,19 +506,21 @@ nayruSingingCutsceneHandler:
 	jp loadGfxRegisterStateIndex
 
 ;;
+; pasa a la sala y los objetos interacción que le pasemos con cfde
 cutscene_loadRoomObjectSetAndFadein:
 	ld hl,wTmpcfc0.genericCutscene.cfde
 	ld a,(hl)
 	push af
-	call cutscene_disableLcdLoadRoomResetCamera
+	call cutscene_disableLcdLoadRoomResetCamera ;carga la sala que le pasemos con el parámetro a
 	pop af
 	ld b,a
-	call getEntryFromObjectTable2
-	call parseGivenObjectData
-	call refreshObjectGfx
-	xor a
-	ld (wTmpcfc0.genericCutscene.cfd1),a
-	jp fadeinFromWhite
+	call getEntryFromObjectTable2 ;busca con el b que le pasemos los objetos interacción a crear en la sala
+	call parseGivenObjectData ;crea los objetos anteriores en la escena
+	call refreshObjectGfx ;se asegura que los gráficos correctos estén cargados en la vram. Limpia datos previos, mira a ver cuál necesitan actualización y carga
+	;los necesarios.
+	xor a ;pone a a 0
+	ld (wTmpcfc0.genericCutscene.cfd1),a ;pone cdf1 a 0
+	jp fadeinFromWhite ;hace fade a la sala
 
 nayruSingingStateE:
 	ld a,(wPaletteThread_mode)

@@ -45,6 +45,7 @@ blackTowerEscape_simulatedInput3:
 	.dw $ffff
 
 ; Same room as above
+; avanza un cuadro a Link
 blackTowerEscape_simulatedInput4:
 	dwb  16 BTN_UP
 	dwb 256 $00

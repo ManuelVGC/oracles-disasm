@@ -1860,6 +1860,8 @@ nayruScript03:
 nayruScript04_part1:
 	checkpalettefadedone
 	wait 30
+
+	;aparece en la pantalla
 	setspeed SPEED_100
 	moveup $19
 	setspeed SPEED_080
@@ -1870,9 +1872,13 @@ nayruScript04_part1:
 	moveleft $11
 	wait 4
 	setanimation $00
+
+	;se mueve un poco hacia arriba cuando termina el primer texto de esa escena el TX_2a12
 	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $06
 	moveup $10
 	wait 180
+
+	;settea cfd0 a 07, siguiendo la escena.
 	writememory wTmpcfc0.genericCutscene.cfd0, $07
 	scriptend
 
@@ -2199,6 +2205,7 @@ ralphSubid06Script_part1:
 	checkpalettefadedone
 	wait 30
 
+	;mueve a ralph hacia arriba no de forma lineal, primero más rápido, luego más lento, luego hace un sprint.
 	setspeed SPEED_100
 	moveup $37
 	setspeed SPEED_080
@@ -2208,17 +2215,18 @@ ralphSubid06Script_part1:
 	moveup $15
 	wait 30
 
+	;dice su texto a Ambi
 	showtext TX_2a12
 	wait 30
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $06
-	checkobjectbyteeq Interaction.var3e, $01
+	writememory wTmpcfc0.genericCutscene.cfd0, $06 ;cambia cfd0 a $06, esto hace seguir el código del stateB del stage 0 de la cutscene del escape de la Torre Negra
+	checkobjectbyteeq Interaction.var3e, $01 ;cuando var3e sea 1, sigue el código. Esto lo pone él mismo después de que Ambi diga su primer texto en la escena.
 	wait 10
 
 	showtext TX_2a13
 	wait 60
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $09
+	writememory wTmpcfc0.genericCutscene.cfd0, $09 ;cambia cfd0 a 9 después de decir TX_2a13
 	scriptend
 
 ralphSubid06Script_part2:
@@ -4334,6 +4342,7 @@ ambiSubid00Script:
 
 ; Cutscene after escaping black tower (part 1)
 ambiSubid01Script_part1:
+	;después de que Nayru se haya movido el paso hacia delante después del primer texto de la cutscene para la música y muestra un texto.
 	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $07
 	playsound SNDCTRL_STOPMUSIC
 	showtext TX_130e
@@ -4341,12 +4350,13 @@ ambiSubid01Script_part1:
 	playsound MUS_PRECREDITS
 	wait 10
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $08
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $09
+	
+	writememory wTmpcfc0.genericCutscene.cfd0, $08 ;cfd0 a 08
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $09 ;cuando Ralph termina su texto vuelve a hablar Ambi por segunda vez
 	showtext TX_130f
 
 	wait 60
-	writememory wTmpcfc0.genericCutscene.cfd0, $0a
+	writememory wTmpcfc0.genericCutscene.cfd0, $0a ;cuando termina su texto pone cfd0 a 9
 	scriptend
 
 

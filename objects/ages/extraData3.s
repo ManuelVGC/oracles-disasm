@@ -7,8 +7,8 @@ objectTable2:
 	.dw objectData7741
 	.dw objectData774b
 	.dw objectData7733
-	.dw objectData5462
-	.dw objectData5470
+	.dw objectData5462 ;niños jugando
+	.dw objectData5470 ;conejos
 	.dw objectData_blackTowerEscape_ambiAndGuards
 	.dw objectData55a2
 	.dw objectData543c
