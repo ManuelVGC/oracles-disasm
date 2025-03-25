@@ -2,4 +2,4 @@
 ; INTERAC_RABBIT
 ; ==================================================================================================
 interactionCode4b:
-	jpab bank3f.c
+	jpab bank3f.interactionCode4b_body

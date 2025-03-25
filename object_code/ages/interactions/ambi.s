@@ -41,11 +41,13 @@ interactionCode4d:
 @initSubid01:
 	ld a,($cfd0)
 	cp $0b
-	jp nz,ambi_loadScript
+	jp nz,ambi_loadScript ;si cfd0 es != 0b se settea como script la parte 1 del script de Ambi (primera vez que se está en la pantalla de la sala con Ambi y sus
+	; guardias).
 	call checkIsLinkedGame
 	ret nz
 
-	;cuando cfd0 sea 0b se hace este script. 
+	;si cfd0 es == 0b (se settea en el stateF al volve a la pantalla con Ambi y sus guardias), entonces es la segunda vez que se está en la pantalla así que se
+	;hace el script parte 2.
 	ld hl,mainScripts.ambiSubid01Script_part2
 	jp interactionSetScript
 
@@ -193,7 +195,7 @@ ambi_runSubid01:
 
 @substate0:
 	ld a,($cfd0)
-	cp $0e
+	cp $0e ;cfd0 es 0e, se pasa a callab agesInteractionsBank08.startJump, y Ambi da un saltito.
 	jr nz,ambi_updateAnimationAndRunScript
 
 	callab agesInteractionsBank08.startJump
@@ -205,7 +207,7 @@ ambi_runSubid01:
 	ret nz
 
 	call interactionIncSubstate
-	ld l,Interaction.var3e
+	ld l,Interaction.var3e ;cuando termina el salto se pone var3e a 1
 	inc (hl)
 
 ambi_ret:

@@ -365,7 +365,9 @@ endgameCutsceneHandler_09_stage0:
 
 	call incCbc2
 	call cutscene_loadRoomObjectSetAndFadein ;settea la sala y los objetos interacción que le pasemos con cfde. En este caso Ambi, sus guardias, Nayru y
-	; Ralph en la sala de justo antes del corte a la sala con los niños jugando con la pelota.
+	; Ralph en la sala de justo antes del corte a la sala con los niños jugando con la pelota. Además, pasa de blanco a la sala.
+	; es el mismo objeto interacción de los guardias, Ambi, Ralph y Nayru que la primera vez que se llega a esta sala, pero estos objetos tienen dos partes en el
+	;script, una se hace cuando cdf0 != 0b y otra al revés. Aquí abajo setteamos cfd0 a 0b de forma que ahora se ponen a hacer cada uno su parte 2 del script.
 
 	;Se coloca a Link en una posición y mirando hacia arriba
 	ld hl,w1Link.enabled
@@ -383,15 +385,16 @@ endgameCutsceneHandler_09_stage0:
 	jp loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
 	;estado gráfico de toda la pantalla después de hacer los cambios anteriores.
 
+; se espera a que se haga todo el diálogo de la segunda vez que se va a la sala donde están Ambi y los guardias y cuando se termina se hace un fade a blanco.
 @state10:
 	call checkIsLinkedGame
 	jr nz,@@linked
 
-	ld a,(wTmpcfc0.genericCutscene.cfd0)
+	ld a,(wTmpcfc0.genericCutscene.cfd0) 
 	cp $10
-	ret nz
+	ret nz ;si cfd0 es 10 fade out a blanco. Esto lo pone Nayru a 10 cuando terminan se termina el diálogo con Ambi.
 	call incCbc2
-	jp fadeoutToWhite
+	jp fadeoutToWhite 
 
 @@linked:
 	ld a,(wTmpcfc0.genericCutscene.cfd0)
@@ -401,47 +404,53 @@ endgameCutsceneHandler_09_stage0:
 	ld (hl),$14
 	ret
 
+; pone la imagen de Link, Nayru y Ralph despidiéndose de Ambi y hace un fade de blanco a la imagen
 @state11:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ; se espera a que termine el fade.
 
 	call incCbc2
-	ld hl,wTmpcbb3
-	ld (hl),60
+	ld hl,wTmpcbb3 
+	ld (hl),60 ;se settea el contador wTmpcbb3 a 60
 
-	ld a,$ff
-	ld (wTilesetAnimation),a
-	call disableLcd
+	ld a,$ff 
+	ld (wTilesetAnimation),a ; pone wTilesetAnimation a ff por algún tema de gráficos parece
+	call disableLcd ;apaga el LCD de la Game Boy. Básicamente se usa para que al cargar una nueva sala o actualizar gráficos todo vaya bien. Para evitar problemas gráficos
 
-	ld a,GFXH_LINK_WITH_ORACLE_END_SCENE
-	call loadGfxHeader
-	ld a,PALH_9d
-	call loadPaletteHeader
+	ld a,GFXH_LINK_WITH_ORACLE_END_SCENE ;gráficos que queremos cargar, en este caso la imagen de Link, Nayru y Ralph despidiéndose de Ambi.
+	call loadGfxHeader ;carga los gráficos anteriores en la VRAM
+	ld a,PALH_9d ;paleta de colores que se va a usar
+	call loadPaletteHeader ;cargado de la paleta de colores
 
-	call cutscene_clearObjects
-	call cutscene_resetOamWithSomething2
-	ld a,$04
-	call loadGfxRegisterStateIndex
-	jp fadeinFromWhite
+	call cutscene_clearObjects ;borra todas las interacciones y a Link. Básicamente a Ambi, todos sus guardias, a Nayru y a Ralph.
+	call cutscene_resetOamWithSomething2 ; usa los gráficos y paleta que se han cargado antes en la VRAM y los coloca bien en pantalla
+	ld a,$04 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores 
+	jp fadeinFromWhite 
 
+;después de 60 frames se muestra el texto TX_1312 (el primer texto de la imagen con Link, Nayru y Ralph despidiéndose de Ambi).
 @state12:
-	call cutscene_resetOamWithSomething2
-	call cutscene_decCBB3IfNotFadingOut
-	ret nz
+	call cutscene_resetOamWithSomething2 ;por alguna razón algunos gráficos no se cargan del todo bien y lo vuelve a hacer para solucionarlo
+	call cutscene_decCBB3IfNotFadingOut 
+	ret nz ;después de que termine el fade a la imagen espera 60 frames 
 
 	call incCbc2
-	ld hl,wMenuDisabled
+	ld hl,wMenuDisabled ;teóricamente no deja que abras el menú pero igualmente al estar dentro de una cutscene parece que se encuentra desactivado ya
 	ld (hl),$01
 	ld hl,wTmpcbb3
-	ld (hl),60
+	ld (hl),60 ;settea el contador wTmpcbb3 a 60
 
 	ld bc,TX_1312
 
+; A esta función se la llama varias veces.
+; La primera vez muestra el primer texto de la imagen con Link, Nayru y Ralph despidiéndose de Ambi, el TX_1312
 @showTextDuringTwinrovaCutscene:
-	ld a,TEXTBOXFLAG_NOCOLORS
+	ld a,TEXTBOXFLAG_NOCOLORS ;temas de que los gráficos funcionen bien al mostrar el texto. Parece que desactiva que ciertos objetos se puedan mostrar mientras se está
+	;mostrando el cuadro de texto.
 	ld (wTextboxFlags),a
-	jp showText
+	jp showText 
 
 @state13:
 	call cutscene_resetOamWithSomething2
@@ -1801,7 +1810,7 @@ cutscene_resetOamWithSomething1:
 	jr cutscene_resetOamWithData
 
 ;;
-cutscene_resetOamWithSomething2:
+cutscene_resetOamWithSomething2: ;coloca los gráficos cargados en VRAM
 	ld hl,bank16.oamData_4e37
 	ld e,:bank16.oamData_4e37
 	ld bc,$3038

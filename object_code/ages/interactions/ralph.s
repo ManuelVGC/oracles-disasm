@@ -51,9 +51,13 @@ ralphState0:
 @initSubid06:
 	;si cfd0 no es 0b hace el script part1. Que es entrar a la pantalla con Ambi y los guardias y mostrar un texto.
 	ld hl,mainScripts.ralphSubid06Script_part1
+
 	ld a,($cfd0)
 	cp $0b
-	jr nz,++
+	jr nz,++ ;si cfd0 es != 0b se settea como script la parte 1 (primera vez que se está en la pantalla de la sala con Ambi y sus guardias).
+
+	;si cfd0 es == 0b (se settea en el stateF al volve a la pantalla con Ambi y sus guardias), entonces es la segunda vez que se está en la pantalla así que se
+	;hace el script parte 2.
 	ld bc,$4850
 	call interactionSetPosition
 	ld hl,mainScripts.ralphSubid06Script_part2
@@ -652,7 +656,7 @@ ralphSubid06:
 	call objectUpdateSpeedZ_paramC
 	ret nz
 	call interactionIncSubstate
-	ld l,Interaction.var3e 
+	ld l,Interaction.var3e ;pone var3e a 1 cuando termina de dar el salto antes de hablar
 	inc (hl)
 	jr ralphRunScript
 

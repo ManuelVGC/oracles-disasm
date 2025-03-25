@@ -82,7 +82,7 @@ oamData_4d9e:
 	.db $60 $00 $00 $21
 	.db $60 $f8 $12 $21
 
-oamData_4e37:
+oamData_4e37: ;y, x, tile id, flag oam
 	.db $28
 	.db $44 $21 $00 $00
 	.db $44 $29 $02 $00

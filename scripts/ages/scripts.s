@@ -1883,12 +1883,14 @@ nayruScript04_part1:
 	scriptend
 
 nayruScript04_part2:
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0f
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0f ;esto lo marca Ambi cuando termina su último texto en la segunda vez que se va a la sala donde están ambi
+	;y los guardias
 	setanimation $01
 	wait 20
-	showtext TX_1d0d
+	showtext TX_1d0d 
 	wait 120
-	writememory wTmpcfc0.genericCutscene.cfd0, $10
+	writememory wTmpcfc0.genericCutscene.cfd0, $10 ;después de decir su texto settea cfd0 a 10, que marca que este dialógo ha terminado. El state10 del stage0
+	; de la cutscene de la torre Negra sigue su ejecución.
 	scriptend
 
 nayruScript05:
@@ -2237,7 +2239,7 @@ ralphSubid06Script_part2:
 	wait 10
 	asm15 scriptHelp.forceLinkDirection, DIR_LEFT
 	wait 10
-	showtext TX_2a14
+	showtext TX_2a14 ;dice el primer texto después de volver a la sala con Ambi y sus guardias
 	wait 60
 
 	jumpifmemoryeq wIsLinkedGame, $01, @linked
@@ -2246,13 +2248,14 @@ ralphSubid06Script_part2:
 	setanimation $00
 	asm15 scriptHelp.forceLinkDirection, DIR_UP
 	wait 20
-	writememory   wTmpcfc0.genericCutscene.cfd0, $0c
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0d
+	writememory   wTmpcfc0.genericCutscene.cfd0, $0c ;cambia cfd0 a 0c, valor que estaba esperando el script de Ambi para decir su texto
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0d ;ambi termina de responderle y marca cfd0 como 0d. Ahora habla Ralph:
 
 	showtext TX_2a15
 	wait 10
 
-	writememory   wTmpcfc0.genericCutscene.cfd0, $0e
+	writememory   wTmpcfc0.genericCutscene.cfd0, $0e ;marca que ha terminado de su texto setteando cfd0 con 0e. Esto triggerea que Ambi pegue un saltito
+	;eso está en ambi_runSubid01 --> substate0.
 	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0f
 	wait 10
 
@@ -4362,18 +4365,19 @@ ambiSubid01Script_part1:
 
 ; Cutscene after escaping black tower (part 2, unlinked only)
 ambiSubid01Script_part2:
-	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0c
+	checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $0c ;cuando cfd0 sea 0c (lo settea Ralph al acabar su primer texto al volver a la sala con Ambi y sus guardias)
+	;muestra el primer texto de Ambi cuando se vuelve a la sala con ella y los  guardias
 	showtext TX_1310
 	wait 30
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $0d
-	checkobjectbyteeq Interaction.var3e, $01
+	writememory wTmpcfc0.genericCutscene.cfd0, $0d ;marca que ha terminado de decir su texto con 0d
+	checkobjectbyteeq Interaction.var3e, $01 ;lo pone Ambi a 1 cuando de dar el saltito justo antes de decir su último texto de esta escena:
 	wait 10
 
 	showtext TX_1311
 	wait 120
 
-	writememory wTmpcfc0.genericCutscene.cfd0, $0f
+	writememory wTmpcfc0.genericCutscene.cfd0, $0f ;marca que ha terminado su último texto setteando cfd0 a 0f
 	scriptend
 
 

@@ -100,8 +100,10 @@ nayruState0:
 	ld hl,mainScripts.nayruScript04_part1
 	ld a,($cfd0)
 	cp $0b
-	jr nz,++
+	jr nz,++ ;si cfd0 es != 0b se settea como script la parte 1 (primera vez que se está en la pantalla de la sala con Ambi y sus guardias).
 
+	;si cfd0 es == 0b (se settea en el stateF al volve a la pantalla con Ambi y sus guardias), entonces es la segunda vez que se está en la pantalla así que se
+	;hace el script parte 2.
 	ld bc,$4840
 	call interactionSetPosition
 	call checkIsLinkedGame

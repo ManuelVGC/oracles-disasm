@@ -248,8 +248,9 @@ m_GfxHeaderStart $28, GFXH_28
 m_GfxHeaderStart $29, GFXH_29
 m_GfxHeaderStart $2a, GFXH_2a
 
+;se cargan en vram los distintos gráficos necesarios
 m_GfxHeaderStart $2b, GFXH_LINK_WITH_ORACLE_END_SCENE
-	m_GfxHeader spr_link_with_oracle, $8000
+	m_GfxHeader spr_link_with_oracle, $8000 
 	m_GfxHeader gfx_link_with_oracle_1, $8800
 	m_GfxHeader gfx_link_with_oracle_2, $8801
 	m_GfxHeader gfx_link_with_oracle_3, $9001
