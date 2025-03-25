@@ -452,34 +452,38 @@ endgameCutsceneHandler_09_stage0:
 	ld (wTextboxFlags),a
 	jp showText 
 
+;espera 60 frames después de que termine el texto y hace un fade a blanco. Termina el stage0.
 @state13:
-	call cutscene_resetOamWithSomething2
+	call cutscene_resetOamWithSomething2 ; de nuevo por alguna razón algunos gráficos no se cargan del todo bien y lo vuelve a hacer para solucionarlo
 	call cutscene_decCBB3IfTextNotActive
-	ret nz
-	call cutscene_clearTmpCBB3
-	ld a,$01
-	ld (wGenericCutscene.cbc1),a
-	jp fadeoutToWhite
+	ret nz ;cuando termine el texto espera 60 frames y luego sigue
+	call cutscene_clearTmpCBB3 ;limpia cbb3
+	ld a,$01 
+	ld (wGenericCutscene.cbc1),a ;pone cbc1 a 1
+	jp fadeoutToWhite 
 
+
+;tanto state 14 como state15 son del juego linked
+;cuando haya terminado el texto y se pulse una tecla se hace un fade a blanco
 @state14:
 	ld a,(wTextIsActive)
 	rlca
-	ret nc
+	ret nc ;cuando haya texto sigue
 	ld a,(wKeysJustPressed)
 	or a
-	ret z
+	ret z ;cuando se presione una tecla se sigue
 	call incCbc2
 	ld a,$04
-	jp fadeoutToWhiteWithDelay
+	jp fadeoutToWhiteWithDelay ;hace un fadeout a blanco con un delay marcado por a
 
 @state15:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	xor a
-	ld (wTextIsActive),a
-	ld a,CUTSCENE_ZELDA_KIDNAPPED
-	ld (wCutsceneTrigger),a
+	ret nz ;cuando haya terminado el fade se sigue
+	xor a ; se pone a = 0
+	ld (wTextIsActive),a  ;wTextIsActive = 0
+	ld a,CUTSCENE_ZELDA_KIDNAPPED 
+	ld (wCutsceneTrigger),a ;se triggerea CUTSCENE_ZELDA_KIDNAPPED
 	ret
 
 
