@@ -446,6 +446,7 @@ endgameCutsceneHandler_09_stage0:
 
 ; A esta función se la llama varias veces.
 ; La primera vez muestra el primer texto de la imagen con Link, Nayru y Ralph despidiéndose de Ambi, el TX_1312
+; La segunda vez muestra el segundo texto de las Twinrovas
 @showTextDuringTwinrovaCutscene:
 	ld a,TEXTBOXFLAG_NOCOLORS ;temas de que los gráficos funcionen bien al mostrar el texto. Parece que desactiva que ciertos objetos se puedan mostrar mientras se está
 	;mostrando el cuadro de texto.
@@ -459,7 +460,7 @@ endgameCutsceneHandler_09_stage0:
 	ret nz ;cuando termine el texto espera 60 frames y luego sigue
 	call cutscene_clearTmpCBB3 ;limpia cbb3
 	ld a,$01 
-	ld (wGenericCutscene.cbc1),a ;pone cbc1 a 1
+	ld (wGenericCutscene.cbc1),a ;se pasa al stage1
 	jp fadeoutToWhite 
 
 
@@ -490,7 +491,7 @@ endgameCutsceneHandler_09_stage0:
 ; Twinrova appears just before credits
 endgameCutsceneHandler_09_stage1:
 	call @runStates
-	jp updateAllObjects
+	jp updateAllObjects ;se ejecuta después de cada estado, es decir, cada frame. Si lo quitas los gráficos del juego se rompen por todas partes.
 
 @runStates:
 	ld de,wGenericCutscene.cbc2
@@ -507,52 +508,60 @@ endgameCutsceneHandler_09_stage1:
 	.dw @state8
 	.dw @state9
 
+
+;cuando termine el fade a blanco carga la nueva imagen con su música correspondiente y hace un fade a la imagen
 @state0:
-	call cutscene_resetOamWithSomething2
+	call cutscene_resetOamWithSomething2 ;temas gráficos
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando haya terminado el fade sigue
 
 	call incCbc2
 	ld hl,wTmpcbb3
-	ld (hl),60
+	ld (hl),60 ;se settea el contador wTmpcbb3 a 60
 
-	call disableLcd
-	call clearOam
-	ld a,GFXH_LINK_WITH_ORACLE_AND_TWINROVA_END_SCENE
-	call loadGfxHeader
-	ld a,PALH_9e
-	call loadPaletteHeader
-	ld a,$04
-	call loadGfxRegisterStateIndex
+	call disableLcd ;apaga el LCD de la Game Boy. Básicamente se usa para que al cargar una nueva sala o actualizar gráficos todo vaya bien. Para evitar problemas gráficos
+	call clearOam ;limpia posibles residuos gráficos en la OAM
 
-	ld a,MUS_DISASTER
-	call playSound
-	jp fadeinFromWhite
+	ld a,GFXH_LINK_WITH_ORACLE_AND_TWINROVA_END_SCENE ;gráficos que queremos cargar, en este caso la imagen de Link, Nayru y Ralph despidiéndose de Ambi
+	;con el fuego alrededor
+	call loadGfxHeader ;carga los gráficos anteriores en la VRAM
+	ld a,PALH_9e ;paleta de colores que se va a usar
+	call loadPaletteHeader ;cargado de la paleta de colores
+	ld a,$04 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores 
 
+	ld a,MUS_DISASTER 
+	call playSound ;cambia la música
+	jp fadeinFromWhite ;fade desde blanco a la imagen
+
+;después de 60 frames se muestra el primer texto de las Twinrova
 @state1:
-	ld a,TEXTBOXFLAG_NOCOLORS
+	ld a,TEXTBOXFLAG_NOCOLORS ;temas de que los gráficos funcionen bien al mostrar el texto. Parece que desactiva que ciertos objetos se puedan mostrar mientras se
+	;está mostrando el cuadro de texto.
 	ld (wTextboxFlags),a
 	ld a,60
 	ld bc,TX_280b
 	call cutscene_decCBB3IfNotFadingOut
-	ret nz
+	ret nz  ;60 frames después del fade a la imagen sigue
 	call incCbc2
 	ld a,e
-	ld (wTmpcbb3),a
-	jp showText
+	ld (wTmpcbb3),a ;recarga el contador wTmpcbb3 con 60
+	jp showText ;muestra el primer texto de las Twinrova
 
+;espera 60 frames después del texto antes de continuar, carga los nuevos datos de sprites y los actualiza en pantalla
 @state2:
 	call cutscene_decCBB3IfTextNotActive
-	ret nz
+	ret nz ;espera 60 frames después del texto para seguir
 	call incCbc2
 
 	ld hl,wTmpcbb5
-	ld (hl),$d0
+	ld (hl),$d0 ;carga d0 en Tmpcbb5. Se usa como temporizador para mover a las Twinrova. Primero la de la izquierda, luego la de la derecha.
 
 @loadCertainOamData1:
 	ld hl,bank16.oamData_4d05
-	ld e,:bank16.oamData_4d05
+	ld e,:bank16.oamData_4d05 ;carga los datos de los sprites situados en esa posición de memoria, que serán la Twinrova izquierda.
 
 @loadOamData:
 	ld b,$30
@@ -561,85 +570,91 @@ endgameCutsceneHandler_09_stage1:
 	ld a,(de)
 	pop de
 	ld c,a
-	jp cutscene_resetOamWithData
+	jp cutscene_resetOamWithData ;actualiza los nuevos datos de la OAM en pantalla (se usa el valor de wTmpcbb5)
 
+; Aparece la Twinrova izquierda
 @state3:
 	ld hl,wTmpcbb5
 	inc (hl)
-	jr nz,@loadCertainOamData1
-	call clearOam
+	jr nz,@loadCertainOamData1 ;se incrementa wTmpcbb5 hasta que llegue a 0 y mientras no, se van actualizando los datos de la OAM en pantalla
+	call clearOam ;se limpia la OAM
 	ld a,UNCMP_GFXH_0a
-	call loadUncompressedGfxHeader
+	call loadUncompressedGfxHeader ;se carga un nuevo gráfico
 	ld hl,wTmpcbb3
-	ld (hl),30
+	ld (hl),30 ;se settea el contador wTmpcbb3 a 30
 	jp incCbc2
 
+; Se espera 30 frames y se recarga el temporizador que mueve el sprite de la Twinrova
 @state4:
 	call decCbb3
-	ret nz
+	ret nz ;después de 30 frames se sigue
 	call incCbc2
 	ld hl,wTmpcbb5
-	ld (hl),$d0
+	ld (hl),$d0 ;vuelve a settear wTmpcbb5 a d0
 
 @loadCertainOamData2:
 	ld hl,bank16.oamData_4d9e
-	ld e,:bank16.oamData_4d9e
+	ld e,:bank16.oamData_4d9e  ;carga los datos de los sprites situados en esa posición de memoria, que serán la Twinrova derecha.
 	jr @loadOamData
 
+; Aparece la Twinrova derecha.
 @state5:
-	call @loadCertainOamData2
+	call @loadCertainOamData2 ;carga nuevos datos en la OAM
 	ld hl,wTmpcbb5
 	dec (hl)
 	ld a,(hl)
 	sub $a0
-	ret nz
+	ret nz ;se decrementa wTmpcbb5 hasta que llege a 0, entonces sigue
 
-	ld (wScreenOffsetY),a ; 0
-	ld (wScreenOffsetX),a
+	;se ponen a 0 los valores de desplazamiento  de pantalla después de haber movido ya a las dos Twinrova.
+	ld (wScreenOffsetY),a 
+	ld (wScreenOffsetX),a 
 
 	ld a,30
-	ld (wTmpcbb3),a
-	ld (wOpenedMenuType),a
+	ld (wTmpcbb3),a ;se recarga el contador wTmpcbb3 a 30
+	;ld (wOpenedMenuType),a ;hace algo con el menú
 	jp incCbc2
 
+; Con las Twinrovas ya colocadas en pantalla, dicen un texto
 @state6:
-	call @loadCertainOamData2
+	call @loadCertainOamData2 ;carga nuevos datos en la OAM
 	call decCbb3
-	ret nz
+	ret nz ;espera 30 frames luego sigue
 	ld hl,wTmpcbb3
-	ld (hl),20
+	ld (hl),20 ;recarga el contador wTmpcbb3 a 20
 	ld bc,TX_280c
-	call endgameCutsceneHandler_09_stage0@showTextDuringTwinrovaCutscene
+	call endgameCutsceneHandler_09_stage0@showTextDuringTwinrovaCutscene ;se muestra el segundo texto de las Twinrovas
 	jp incCbc2
 
+; Después de 20 frames suena un rayo
 @state7:
-	call @loadCertainOamData2
+	call @loadCertainOamData2 ;carga nuevos datos en la OAM
 	call cutscene_decCBB3IfTextNotActive
-	ret nz
-	xor a
+	ret nz ;20 frames después del texto se sigue
+	xor a ; a = 0
 	ld (wOpenedMenuType),a
 	dec a
-	ld (wTmpcbba),a
+	ld (wTmpcbba),a ; wTmpcbba = $0FF
 	ld a,SND_LIGHTNING
-	call playSound
+	call playSound ;suena un rayo
 	jp incCbc2
 
 @state8:
-	call @loadCertainOamData2
-	ld hl,wTmpcbb3
-	ld b,$02
-	call flashScreen
-	ret z
-
-	; Time to load twinrova's face graphics?
+	call @loadCertainOamData2 ;carga nuevos datos en la OAM
+	ld hl,wTmpcbb3 
+	ld b,$02 
+	call flashScreen ;la pantalla flashea
+	ret z ;cuando sea != 0 (ha terminado el flash) se sigue el código
 
 	call incCbc2
 	ld hl,wTmpcbb3
-	ld (hl),30
+	ld (hl),30 ; se recarga el contador wTmpcbb3 a 30
 
-	call disableLcd
-	call clearOam
-	xor a
+	call disableLcd ;apaga el LCD de la Game Boy. Básicamente se usa para que al cargar una nueva sala o actualizar gráficos todo vaya bien. Para evitar problemas gráficos
+	call clearOam ;limpia la OAM
+
+	;limpia zonas de memoria para evitar glitches (quitándolo parece que tampoco supone problemas pero lo dejo porque si está es por algo)
+	xor a ; a = 0
 	ld ($ff00+R_VBK),a
 	ld hl,$8000
 	ld bc,$2000
@@ -657,34 +672,45 @@ endgameCutsceneHandler_09_stage1:
 	ld bc,$0400
 	call clearMemoryBc
 
-	ld a,GFXH_TWINROVA_CLOSEUP
-	call loadGfxHeader
-	ld a,PALH_9c
-	call loadPaletteHeader
-	ld a,$04
-	call loadGfxRegisterStateIndex
-	ld a,SND_LIGHTNING
-	call playSound
-	jp clearPaletteFadeVariablesAndRefreshPalettes
+	ld a,GFXH_TWINROVA_CLOSEUP ;gráficos que queremos cargar, en este caso la del close up de la Twinrova
+	call loadGfxHeader ;carga los gráficos anteriores en la VRAM
+	ld a,PALH_9c ;paleta de colores que se va a usar
+	call loadPaletteHeader ;cargado de la paleta de colores
+	ld a,$04 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores 
 
+	ld a,SND_LIGHTNING
+	call playSound ; Suena otra vez el rayo
+
+	jp clearPaletteFadeVariablesAndRefreshPalettes ;refresca la paleta de colores asegurando que los gráficos se muestren correctamente en pantalla
+
+; Se espera 30 frames y se hace un fundido a negro. Se pasa a los créditos.
 @state9:
 	call decCbb3
-	ret nz
+	ret nz ;después de 30 frames sigue
 	ld a,CUTSCENE_CREDITS
-	ld (wCutsceneIndex),a
-	call cutscene_clearTmpCBB3
+	ld (wCutsceneIndex),a ;se cambia el wCutsceneIndex al de los créditos. Parece que se usa wCutsceneIndex al ver ya de una cutscene. Al final de la muerte de
+	; Veran quizá se usa wCutsceneTrigger porque se inicia una cutscene después de gameplay.
+	call cutscene_clearTmpCBB3 ;se limpia wTmpcbb3
+
+	; Se limpia la memoria de la habitación
 	ld hl,wRoomLayout
 	ld bc,$00c0
 	call clearMemoryBc
 	ld hl,wRoomCollisions
 	ld bc,$00c0
 	call clearMemoryBc
+
+	; Se reinicia la posición de la cámara
 	ldh (<hCameraY),a
 	ldh (<hCameraX),a
+
 	ld hl,wTmpcbb3
-	ld (hl),60
+	ld (hl),60 ; Se settea el contador wTmpcbb3 a 60
+
 	ld a,$03
-	jp fadeoutToBlackWithDelay
+	jp fadeoutToBlackWithDelay ;fadeout a negro
 
 ;;
 ; CUTSCENE_FLAME_OF_DESPAIR ;escena que pertenece ya a la parte del juego linked
@@ -1432,7 +1458,7 @@ endgameCutsceneHandler_0f:
 ; CUTSCENE_CREDITS
 endgameCutsceneHandler_0a:
 	call @runStates
-	jp func_3539
+	jp func_3539 ;similar a UpdateAllObjects
 
 @runStates:
 	ld de,$cbc1
@@ -1449,49 +1475,58 @@ endgameCutsceneHandler_0a:
 	.dw @@substate0
 	.dw @@substate1
 	.dw @@substate2
+
+;después de que termine el fade anterior a negro limpia la OAM, crea el título (aunque aún no se ve), inicia música de los créditos e inicia un contador de 180 frames
 @@substate0:
 	call cutscene_decCBB3IfNotFadingOut
-	ret nz
-	call func_60e0
+	ret nz ;sigue cuando termine el fade anterior del state 9 del stage1.
+	call func_60e0 ;se resetean ciertos aspectos del jugador antes de mostrar los créditos (vida, inventario y anillo equipado)
 	call incCbc2
-	call clearOam
-	ld hl,wTmpcbb3
-	ld (hl),$b4
-	inc hl
-	ld (hl),$00
-	ld hl,wGfxRegs1.LCDC
-	set 3,(hl)
-	ld a,MUS_CREDITS_2
-	jp playSound
+	call clearOam ;limpia la OAM
+	ld hl,wTmpcbb3 
+	ld (hl),$b4 ;pone wTmpcbb3 a b4 (180)
+	inc hl ;apunta a el byte algo de wTmpcbb3
+	ld (hl),$00 ;pone la parte alta de wTmpcbb3 (creo que es para que sea bien 180, que sea 0x00B4, quizá por si en el 00 antes había quedado algún residuo?)
+	ld hl,wGfxRegs1.LCDC 
+	set 3,(hl) ;activa el bit tres de wGfxRegs1.LCDC. Si lo quitas no sale el "The Legend of Zelda: Oracle of Ages" en los créditos. Entiendo que lo pone en pantalla.
+	ld a,MUS_CREDITS_2 
+	jp playSound ;suena la música de los créditos
+
+; después de 180 frames se carga la nueva paleta, se hace un fade al título que hemos puesto en el estado anterior y se crea un contador de 14 segundos
 @@substate1:
 	ld hl,wTmpcbb3
 	call decHlRef16WithCap
-	ret nz
-	call incCbc2
+	ret nz ;decrementa wTmpcbb3 hasta 0 y cuando llega el código sigue
+	call incCbc2 
 	ld hl,wTmpcbb3
-	ld (hl),$48
-	inc hl
-	ld (hl),$03
-	ld a,PALH_04
-	call loadPaletteHeader
+	ld (hl),$48 ;se pone wTmpcbb3 a 48
+	inc hl  ;apunta a el byte alto de wTmpcbb3
+	ld (hl),$03 ;se pone 03 la parte alta, esto crea un contador de 0x0348 (840 frames, 14 segundos). Esto entiendo que es para que esté el
+	;"The Legend of Zelda: Oracle of Ages" un rato largo en pantalla
+
+	ld a,PALH_04 
+	call loadPaletteHeader ;se carga una nueva paleta
 	ld a,$06
-	jp fadeinFromBlackWithDelay
+	jp fadeinFromBlackWithDelay ;se hace el fade desde negro a "The Legend of Zelda: Oracle of Ages"
+
+; después de 14 segundos si el juego no está linkado, resetea un par de variables, hace un fade a blanco y sigue en el state1.
 @@substate2:
 	ld hl,wTmpcbb3
 	call decHlRef16WithCap
-	ret nz
-	call incCbc1
-	inc l
-	ld (hl),a
-	ld b,$00
+	ret nz ;espera 14 segundos luego el código sigue
+	call incCbc1 ;incrementa cbc1 para pasar al state1
+	inc l ;apunta a wTmpcbb4
+	ld (hl),a ;pone wTmpcbb4 a 0 (supuestamente era 6 al final del substate1 pero parece que se usa esta instrucción normalmente para limpiar variables y que
+	;lo normal es que aquí sea 0)
+	ld b,$00 ; b = 0
 	call checkIsLinkedGame
 	jr z,+
-	ld b,$04
+	ld b,$04 ;no se hace porque no está el juego linkado
 +
 	ld hl,$cfde
-	ld (hl),b
-	inc l
-	ld (hl),$00
+	ld (hl),b ;pone cfde a 0
+	inc l ;apunta ahora a cfdf
+	ld (hl),$00 ;pone cfdf a 0
 	jp fadeoutToWhite
 
 @state1:
