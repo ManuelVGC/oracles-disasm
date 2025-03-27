@@ -52,7 +52,7 @@ interactionCodea8:
 	.dw @thing3
 	.dw @thing4
 	.dw @thing5
-	.dw @thing6
+	.dw @thing6 ;si subID = $64 entra aquí
 
 @thing2:
 @thing3:

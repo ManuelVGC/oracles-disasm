@@ -60,12 +60,12 @@ objectData5492:
 	obj_End
 
 objectData54ac:
-	obj_Interaction $31 $02 $a0 $50
-	obj_Interaction $37 $07 $60 $60
-	obj_Interaction $a8 $64 $60 $40
-	obj_Interaction $36 $05 $50 $50
-	obj_Interaction $6b $0e $40 $84
-	obj_Interaction $87 $04 $40 $50
+	obj_Interaction $31 $02 $a0 $50 ;impa
+	obj_Interaction $37 $07 $60 $60 ;ralph
+	obj_Interaction $a8 $64 $60 $40 ;link
+	obj_Interaction $36 $05 $50 $50 ;nayru
+	obj_Interaction $6b $0e $40 $84 ;estatua de Link
+	obj_Interaction $87 $04 $40 $50 ;maku tree
 	obj_End
 
 objectData54c6:

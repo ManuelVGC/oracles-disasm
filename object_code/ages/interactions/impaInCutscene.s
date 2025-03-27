@@ -599,7 +599,7 @@ impaSubid1Substate2:
 	jp interactionAnimate
 
 ;;
-; Impa in the credits cutscene
+; Impa in the credits cutscene con Ralph, Nayru, Link, el árbol Maku y la estatua de Link. Inicia el comportamiento de esa escena.
 impaSubid2:
 	ld e,Interaction.substate
 	ld a,(de)
@@ -620,7 +620,7 @@ impaSubid2:
 	call interactionIncSubstate
 	ld a,$50
 	ld bc,$6050
-	jp createEnergySwirlGoingIn
+	jp createEnergySwirlGoingIn ;bc y a son parámetros del swirl
 
 @substate1:
 	call interactionDecCounter1
@@ -641,7 +641,7 @@ impaSubid2:
 	call interactionIncSubstate
 	call interactionCode31@loadScript
 	ld a,$01
-	ld ($cfc0),a
+	ld ($cfc0),a ;cfc0 = 1
 	jp fadeinFromWhite
 
 ;;

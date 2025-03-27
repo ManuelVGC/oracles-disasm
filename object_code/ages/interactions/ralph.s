@@ -663,7 +663,7 @@ ralphSubid06:
 ;;
 ; Cutscene postgame where they warp to the maku tree, Ralph notices the statue
 ralphSubid07:
-	callab scriptHelp.objectWritePositionTocfd5
+	callab scriptHelp.objectWritePositionTocfd5 ;guarda posición de Ralph en cfd5
 	ld e,Interaction.substate
 	ld a,(de)
 	rst_jumpTable

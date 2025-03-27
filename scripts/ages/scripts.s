@@ -1070,13 +1070,13 @@ impaScript1:
 
 ; Subid 2: credits cutscene
 impaScript2:
-	checkpalettefadedone
+	checkpalettefadedone 
 	wait 90
 	setspeed SPEED_200
 	moveup $20
 	addobjectbyte Interaction.var38, $1e
 	addobjectbyte Interaction.substate, $01
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $05
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $05 ;cuando cfc0 sea 05 sigue el código
 	setanimation $08
 	checkobjectbyteeq Interaction.animParameter, $01
 	writememory wTmpcfc0.genericCutscene.state, $06
@@ -1894,7 +1894,7 @@ nayruScript04_part2:
 	scriptend
 
 nayruScript05:
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $01
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código
 	asm15 objectSetVisible82
 	checkpalettefadedone
 	wait 60
@@ -2270,7 +2270,7 @@ ralphSubid06Script_part2:
 
 ; Cutscene postgame where they warp to the maku tree, Ralph notices the statue
 ralphSubid07Script:
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $01
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código
 
 	asm15 objectSetVisible82
 	checkmemoryeq wTmpcfc0.genericCutscene.state, $02

@@ -1538,73 +1538,99 @@ endgameCutsceneHandler_0a:
 	.dw @@substate2
 	.dw @@substate3
 	.dw @@substate4
+
+; mientras la pantalla está en blanco, carga la nueva sala y todos los gráficos y objetos corrrespondientes, luego hace un fade a la sala
 @@substate0:
 	xor a
-	ldh (<hOamTail),a
-	ld a,(wPaletteThread_mode)
+	ldh (<hOamTail),a ;pone a 0 hOamTail, que es "Where to put the next OAM object (low byte for wOam)". Parece ser el número de sprites en la OAM.
+
+	ld a,(wPaletteThread_mode) 
 	or a
-	ret nz
-	call disableLcd
+	ret nz ;cuando haya terminado el fade anterior, sigue el código
+
+	;prepara la pantalla para el nuevo fondo
+	call disableLcd ;apaga el LCD de la Game Boy. Básicamente se usa para que al cargar una nueva sala o actualizar gráficos todo vaya bien. Para evitar problemas gráficos
 	call incCbc2
-	call clearDynamicInteractions
-	call clearOam
-	ld a,$10
-	ldh (<hOamTail),a
-	ld a,($cfde)
-	ld c,a
-	call cutscene_clearCFC0ToCFDF
+	call clearDynamicInteractions ;limpiamos todas las interacciones
+	call clearOam ;limpiamos la OAM. Limpia sprites.
+
+	;limpia datos de la cutscene
+	ld a,$10 
+	ldh (<hOamTail),a ;pone OamTail a 10 (supuestamente está reservando espacio para nuevos sprites)
+	ld a,($cfde) ;guarda el valor de cfde
+	ld c,a 
+	call cutscene_clearCFC0ToCFDF ;limpia CFC0 - CFDF
 	ld a,c
-	ld ($cfde),a
+
+	;carga la sala correspondiente
+	ld ($cfde),a ;vuelve a poner cfde a su valor anterior
 	cp $04
-	jr nc,+
-	ld hl,@@table_5f1c
-	rst_addDoubleIndex
+	jr nc,+ ;si cfde < 04 --> c; si cfde > 04 --> nc. Al principio cdfe es 0 así que el código sigue. Cfde va a funcionar como contador de escenas de los créditos.
+	ld hl,@@table_5f1c 
+	rst_addDoubleIndex ;se recorre table_5f1c con el valor de cfde para seleccionar una habitación a cargar. Cada entrada de la tabla son dos bytes.
+	;Al principio devuelve la primera sala ROOM_AGES_038.
+
+	;se guarda la sala en b y c. b = wActiveGroup, c = wActiveRoom.
 	ld b,(hl)
 	inc hl
 	ld c,(hl)
-	ld a,$00
-	call forceLoadRoom
-	ld a,($cfde)
-	ld hl,@@table_5f24
-	rst_addAToHl
-	ldi a,(hl)
-	call loadUncompressedGfxHeader
-+
-	ld a,($cfde)
-	add a
-	add GFXH_CREDITS_SCENE1
-	call loadGfxHeader
-	ld a,PALH_0f
-	call loadPaletteHeader
-	ld a,($cfde)
-	ld b,$ff
-	or a
-	jr z,+
-	cp $07
-	jr z,+
-	ld b,$01
-+
-	ld c,a
-	ld a,b
-	ld (wTilesetAnimation),a
-	call loadAnimationData
-	ld a,c
-	ld hl,@@table_5f28
-	rst_addAToHl
-	ldi a,(hl)
-	call loadPaletteHeader
-	call reloadObjectGfx
-	ld a,$01
-	ld (wScrollMode),a
-	xor a
-	ldh (<hCameraX),a
-	ld hl,$cfde
-	ld b,(hl)
-	call cutscene_parseObjectData_andLoadObjectGfx
-	ld a,$04
-	call loadGfxRegisterStateIndex
-	jp fadeinFromWhite
 
+	;se carga la nueva sala
+	ld a,$00
+	call forceLoadRoom ;se fuerza la nueva sala con b = wActiveGroup, c = wActiveRoom y a = wRoomStateModifier. En otros casos se ha cargado la sala con
+	;disableLcdAndLoadRoom_body que es un poco lo mismo.
+
+	;se cargan unos gfx
+	ld a,($cfde) ; a = cfde (0 al principio)
+	ld hl,@@table_5f24 
+	rst_addAToHl ;se usa cfde para apuntar a la entrada correspondiente de la tabla
+	ldi a,(hl) ;cargas en a el valor de la tabla
+	call loadUncompressedGfxHeader ;cargas el gfx
+
++
+	;se cargan los gráficos de la scene1 de los créditos con su paleta correspondiente
+	ld a,($cfde) 
+	add a ;se multiplica el valro cfde por 2 para hacerlo de 16 bits, que es lo que necesitamos ahora
+	add GFXH_CREDITS_SCENE1 ;selecciona el gráfico de los créditos scene1
+	call loadGfxHeader ;cargas esos gráficos
+	ld a,PALH_0f ;cambias la paleta
+	call loadPaletteHeader ;cargas la nueva paleta
+	;ejemplo de lo anterior sería cfde = 1, a = 2, add $50 --> a = 52, que sería la hipotética dirección de los gráficos de la segunda escena de los créditos
+
+	ld a,($cfde) ; a = cfde
+	ld b,$ff ; b = ff
+	or a 
+	jr z,+ ;si a = 0 se salta a +
+	cp $07 ;compara a con 07
+	jr z,+ ;si a = 7 saltas a +
+	ld b,$01 ;sino, b = 1
++
+	ld c,a ; c = a
+	ld a,b ; a = b
+	ld (wTilesetAnimation),a ; wTilesetAnimation = a
+	call loadAnimationData ; carga la animación del tileset
+	ld a,c ; a vuelve a su valor anterior
+
+	ld hl,@@table_5f28 
+	rst_addAToHl ; se apunta a la tabla 5f28 con el valor de a (al principio 0)
+	ldi a,(hl)
+	call loadPaletteHeader ;se carga la paleta
+
+	call reloadObjectGfx ;recarga los gráficos de la pantalla
+	ld a,$01
+	ld (wScrollMode),a ; scrollmode = 1
+	xor a ; a = 0
+	ldh (<hCameraX),a ; se reinicia la posición de la cámara
+	ld hl,$cfde 
+	ld b,(hl) ; b = cfde
+	call cutscene_parseObjectData_andLoadObjectGfx ;carga sprites y objetos de la escena. Primero carga los del índice 0 de la tabla: Impa, Nayru, Ralph, la estatua
+	;de Link, el árbol Maku y Link
+	ld a,$04
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores 
+	jp fadeinFromWhite ;fade a la sala desde blanco
+
+; se accede cuatro veces aquí con cdfe como índice
 @@table_5f1c:
 	dwbe ROOM_AGES_038
 	dwbe ROOM_AGES_03a
@@ -1612,7 +1638,7 @@ endgameCutsceneHandler_0a:
 	dwbe ROOM_AGES_116
 
 @@table_5f24:
-	.db $2d $0f
+	;.db $2d $0f
 	.db $2d $0f
 
 @@table_5f28:
@@ -1621,17 +1647,21 @@ endgameCutsceneHandler_0a:
 	.db $ca $ca
 	.db $ca $ae
 
+;después de que se termine el fade a la sala y cuando se termine X se hace un fade out a blanco 
 @@substate1:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	ld a,($cfdf)
+	ret nz ;cuando haya terminado el fade, continúa el código
+
+	ld a,($cfdf) ;a = 0
 	or a
-	ret z
+	ret z ;mientras cfdf sea 0 no sigue el código
 	call incCbc2
-	ld a,$ff
-	ld (wTilesetAnimation),a
+	ld a,$ff ; a = ff
+	ld (wTilesetAnimation),a ; settea wTilesetAnimation a ff
 	jp fadeoutToWhite
+
+
 @@substate2:
 	ld a,(wPaletteThread_mode)
 	or a
