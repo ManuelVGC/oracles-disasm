@@ -678,15 +678,15 @@ nayruSubid04:
 	jpab scriptHelp.turnToFaceSomething
 
 ;;
-; Subid $05: ?
+; Subid $05: cuando Ralph exclama en la cutscene con el árbol Maku, Link, la estatua de Link e Impa, Nayru se gira a mirarle.
 nayruSubid05:
 	call nayruAnimateAndRunScript
 
 	ld a,($cfc0)
-	cp $03
-	ret c
+	cp $03 ;cuando Ralph exclama se gira a mirarle.
+	ret c ;si a >= 3 el código sigue
 	cp $05
-	ret nc
+	ret nc ;si a >= 3 y <5 el código sigue
 
 	jpab scriptHelp.turnToFaceSomething
 

@@ -4,13 +4,13 @@
 interactionCodea8:
 	ld e,Interaction.subid
 	ld a,(de)
-	and $0f
+	and $0f ;se coge solo en bajo nibble, en caso de $64 se compone de $6 y $4 así que se usa el $4.
 	rst_jumpTable
 	.dw @subid0
 	.dw @subid1
 	.dw @subid2
 	.dw @subid3
-	.dw @subid4
+	.dw @subid4 ;con subID $64 entra aquí
 
 @subid0:
 @subid1:
@@ -35,15 +35,15 @@ interactionCodea8:
 @subid4:
 	ld hl,w1Link.enabled
 	ld (hl),$03
-	call objectCopyPosition
+	call objectCopyPosition ;Link aparece donde este objeto interacción
 	call @handleSubidHighNibble
 	jp interactionDelete
 
 @handleSubidHighNibble:
 	ld e,Interaction.subid
 	ld a,(de)
-	swap a
-	and $0f
+	swap a ;mueve el alto nibble al bajo
+	and $0f ;limpia el alto, queda $06.
 	ld b,a
 	rst_jumpTable
 	.dw @thing0
@@ -63,7 +63,8 @@ interactionCodea8:
 	ld hl,w1Link.id
 	ld (hl),SPECIALOBJECT_LINK_CUTSCENE
 	inc l
-	ld (hl),a
+	ld (hl),a ;con subID $64 inicia a Link en modo cutscene de tipo especial SPECIALOBJECT_LINK_CUTSCENE con valor $09 (el valor de a del @thing6)
+	;no sé cómo llega exactamente ahí pero eso es linkCutscene9 del linkInCutscene.s.
 	ret
 
 @thing5:

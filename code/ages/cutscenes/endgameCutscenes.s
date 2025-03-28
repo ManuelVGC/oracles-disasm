@@ -1638,7 +1638,7 @@ endgameCutsceneHandler_0a:
 	dwbe ROOM_AGES_116
 
 @@table_5f24:
-	;.db $2d $0f
+	.db $2d $0f
 	.db $2d $0f
 
 @@table_5f28:
@@ -1647,7 +1647,8 @@ endgameCutsceneHandler_0a:
 	.db $ca $ca
 	.db $ca $ae
 
-;después de que se termine el fade a la sala y cuando se termine X se hace un fade out a blanco 
+;después de que se termine el fade a la sala y cuando se termine la escena del árbol Maku, Link, Nayru, Ralph, Impa y la estatua de Link tras la colleja
+;a Link, se hace un fade out a blanco 
 @@substate1:
 	ld a,(wPaletteThread_mode)
 	or a
@@ -1655,7 +1656,7 @@ endgameCutsceneHandler_0a:
 
 	ld a,($cfdf) ;a = 0
 	or a
-	ret z ;mientras cfdf sea 0 no sigue el código
+	ret z ;mientras cfdf sea 0 no sigue el código. cfcf lo pone a ff Link al terminar su animación tras la colleja de Impa.
 	call incCbc2
 	ld a,$ff ; a = ff
 	ld (wTilesetAnimation),a ; settea wTilesetAnimation a ff

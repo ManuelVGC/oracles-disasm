@@ -1068,18 +1068,18 @@ impaScript1:
 	scriptend
 
 
-; Subid 2: credits cutscene
+; Subid 2: credits cutscene con el árbol Maku, Link, Nayru, Ralph y la estatua de Link.
 impaScript2:
-	checkpalettefadedone 
+	checkpalettefadedone ;cuando haya terminado el fade sigue el código
 	wait 90
 	setspeed SPEED_200
-	moveup $20
-	addobjectbyte Interaction.var38, $1e
-	addobjectbyte Interaction.substate, $01
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $05 ;cuando cfc0 sea 05 sigue el código
-	setanimation $08
-	checkobjectbyteeq Interaction.animParameter, $01
-	writememory wTmpcfc0.genericCutscene.state, $06
+	moveup $20 ;mueve a Impa hacia arriba 32 pixeles ($20 en decimal)
+	addobjectbyte Interaction.var38, $1e ;suma $1e q var38. Probablemente pone var38 a 30. Se usa como contador en el siguiente subestado de Impa, el 4.
+	addobjectbyte Interaction.substate, $01 ;incrementa el subestado de Impa
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $05 ;cuando cfc0 sea 05 sigue el código. Esto lo pone a 5 Ralph poco después de saltar.
+	setanimation $08 
+	checkobjectbyteeq Interaction.animParameter, $01 
+	writememory wTmpcfc0.genericCutscene.state, $06 ;pone cfc0 a 6, haciendo que el árbol Maku siga su script.
 	scriptend
 
 ; Subid 3: saved Zelda cutscene?
@@ -1894,12 +1894,12 @@ nayruScript04_part2:
 	scriptend
 
 nayruScript05:
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código
-	asm15 objectSetVisible82
-	checkpalettefadedone
-	wait 60
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código. Esto lo pone Impa a 1 justo después del flash de pantalla.
+	asm15 objectSetVisible82 ;aparece Nayru
+	checkpalettefadedone ;cuando termine el flash el código sigue
+	wait 60 
 	setanimation $02
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $05
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $05 ;cuando cfc0 sea 5 el código sigue. Esto lo pone a 5 Ralph poco después de saltar.
 	setanimation $03
 	scriptend
 
@@ -2270,32 +2270,32 @@ ralphSubid06Script_part2:
 
 ; Cutscene postgame where they warp to the maku tree, Ralph notices the statue
 ralphSubid07Script:
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $01 ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código. Esto lo pone Impa a 1 justo después del flash de pantalla.
 
-	asm15 objectSetVisible82
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $02
+	asm15 objectSetVisible82 ;pone visible a Ralph
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $02 ;cuando cfc0 sea 2 el código sigue. Esto lo pone Impa después de dar sus saltos.
 
 	wait 40
 	setanimation $00
 	wait 20
 
-	asm15 scriptHelp.ralph_createExclamationMarkShiftedRight, $28
+	asm15 scriptHelp.ralph_createExclamationMarkShiftedRight, $28 ;ralph hace una exclamación
 	wait 60
 
-	writememory wTmpcfc0.genericCutscene.state, $03
+	writememory wTmpcfc0.genericCutscene.state, $03 ;pone cfc0 a 3 haciendo que el resto de personajes de la escena le miren.
 	setspeed SPEED_180
 	setangle $05
-	applyspeed $1e
-	wait 60
+	applyspeed $1e ; se mueve hacia la estatua de Link
+	wait 60 
 
 	setanimation $02
-	wait 30
+	wait 30 
 
-	addobjectbyte     Interaction.substate, $01
-	checkobjectbyteeq Interaction.var3e,  $01
+	addobjectbyte     Interaction.substate, $01 ;pasa al siguiente subestado, el ralphSubid07Substate1
+	checkobjectbyteeq Interaction.var3e,  $01 ;si var3e es 1, el código sigue. Esto lo pone a 1 el propio Ralph en ralphSubid07Substate2 después de dar un salto
 	wait 60
 
-	writememory wTmpcfc0.genericCutscene.state, $05
+	writememory wTmpcfc0.genericCutscene.state, $05 ;60 frames después pone cfc0 a 5, siguiendo el código de Impa y Nayru
 	scriptend
 
 
@@ -7718,7 +7718,8 @@ makuTree_subid03Script:
 
 
 makuTree_subid04Script:
-	checkmemoryeq wTmpcfc0.genericCutscene.state, $06
+	checkmemoryeq wTmpcfc0.genericCutscene.state, $06 ;cuando cfc0 sea 6 el código sigue. Esto lo pone a 6 Impa después de hacer la animación
+	; de darle una colleja a Link
 	wait 20
 	setanimation $02
 	scriptend

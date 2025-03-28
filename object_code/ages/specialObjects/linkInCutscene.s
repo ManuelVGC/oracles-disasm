@@ -817,7 +817,7 @@ linkCutscene8:
 @substate1:
 	ret
 
-;;
+;; Link en la cutscene de los créditos con Ralph, Nayru, el árbol Maku, Impa y la estatua de Link.
 linkCutscene9:
 	ld e,SpecialObject.state
 	ld a,(de)
@@ -825,6 +825,7 @@ linkCutscene9:
 	.dw @state0
 	.dw @state1
 
+;establece una animación a Link y lo pone invisible
 @state0:
 	call linkCutscene_initOam_setVisible_incState
 	ld a,$02
@@ -844,20 +845,21 @@ linkCutscene9:
 @substate0:
 	ld a,($cfc0)
 	cp $01
-	ret nz
-	call itemIncSubstate
-	jp objectSetVisible82
+	ret nz ;cuando Tmpcfc0.state (cfc0) sea 01, sigue el código. Esto lo pone Impa a 1 justo después del flash de pantalla. 
+	call itemIncSubstate 
+	jp objectSetVisible82 ;pone visible a Link
 
 @substate1:
 	ld a,($cfc0)
 	cp $03
-	ret nz
+	ret nz ; cuando cfc0 sea 3 pasa de state
 	call itemIncSubstate
 
+;hace un salto por la colleja de Impa
 @substate2:
 	ld a,($cfc0)
 	cp $06
-	jp nz,linkCutsceneFunc_73e8
+	jp nz,linkCutsceneFunc_73e8 ;cuando cfc0 sea 6, pega un salto. Esto lo pone Impa a 6 cuando le da la colleja a Link.
 
 	call itemIncSubstate
 	ld bc,$fe40
@@ -865,6 +867,7 @@ linkCutscene9:
 	ld a,$0d
 	jp specialObjectSetAnimation
 
+;cae del salto
 @substate3:
 	ld c,$20
 	call objectUpdateSpeedZ_paramC
@@ -877,6 +880,7 @@ linkCutscene9:
 	ld (hl),$01
 	ret
 
+;espera 120 frames ($78) y pone cfdf a ff
 @substate4:
 	call itemDecCounter1
 	jp nz,specialObjectAnimate

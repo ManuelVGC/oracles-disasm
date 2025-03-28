@@ -613,106 +613,118 @@ impaSubid2:
 	.dw impaSubid2Substate6
 	.dw impaSubid2Substate7
 
+;después del fade a la sala espera unos segundos y crea el swirl
 @substate0:
 	call interactionDecCounter1IfPaletteNotFading
-	ret nz
-	ld (hl),$3c
+	ret nz ;cuando el contador sea 0 sigue el código
+	ld (hl),$3c ;aquí probablemente esté recargando el contador a 60 frames
 	call interactionIncSubstate
 	ld a,$50
 	ld bc,$6050
 	jp createEnergySwirlGoingIn ;bc y a son parámetros del swirl
 
+;después de 60 frames actualiza contadores
 @substate1:
 	call interactionDecCounter1
-	ret nz
-	ld hl,wTmpcbb3
-	xor a
-	ld (hl),a
-	dec a
-	ld (wTmpcbba),a
+	ret nz ;cuando el contador sea 0 sigue el código
+	ld hl,wTmpcbb3 ;hl apunta a wTmpcbb3
+	xor a ;a = 0
+	ld (hl),a ;wTmpcbb3 = 0
+	dec a ;a = ff
+	ld (wTmpcbba),a ;wTmpcbba = ff
 	jp interactionIncSubstate
 
+;la pantalla hace un flash
 @substate2:
-	ld hl,wTmpcbb3
-	ld b,$02
-	call flashScreen
-	ret z
+	ld hl,wTmpcbb3 ;hl apunta a wTmpcbb3
+	ld b,$02 
+	call flashScreen ;usa b como parámetro de flash screen
+	ret z ;cuando termine sigue el código
 
 	call interactionIncSubstate
-	call interactionCode31@loadScript
+	call interactionCode31@loadScript ;carga impaScript2
 	ld a,$01
 	ld ($cfc0),a ;cfc0 = 1
-	jp fadeinFromWhite
+	jp fadeinFromWhite ;vuelve del flash
 
-;;
+;esto lo hace después del substate2. Corre el script de impaScript2.
 impaAnimateAndRunScript:
 	call interactionAnimateBasedOnSpeed
-	jp interactionRunScript
+	jp interactionRunScript ;el script es el que pasa al siguiente subestado, al subestado 4.
 
-
+;después de 30 frames sigue el código
 impaSubid2Substate4:
 	ld h,d
 	ld l,Interaction.var38
 	dec (hl)
-	ret nz
+	ret nz ;cuando var38 sea 0, sigue el código. Este contador lo había puesto en 30 el impaScript2.
 	call interactionIncSubstate
 	ld l,Interaction.counter1
-	ld (hl),$02
+	ld (hl),$02 ;counter1 = 2
 
+;pone una sombra de salto bajo Impa e Impa salta
 impaSetVisibleAndJump:
-	call objectSetVisiblec2
-	ld bc,-$180
-	jp objectSetSpeedZ
+	call objectSetVisiblec2 ;hace visible la sombra debajo de Impa cuando salta
+	ld bc,-$180 
+	jp objectSetSpeedZ ;Impa salta
 
+;Impa salta un par de veces más
 impaSubid2Substate5:
-	ld c,$20
-	call objectUpdateSpeedZ_paramC
+	ld c,$20 
+	call objectUpdateSpeedZ_paramC ;Impa cae después de saltar
 	ret nz
 
-	call interactionDecCounter1
-	jr nz,impaSetVisibleAndJump
+	call interactionDecCounter1 ;decrementa el contador de saltos
+	jr nz,impaSetVisibleAndJump ;Impa hace dos saltos más antes de seguir con el código. El código entra aquí y si es distinto de cero pasa a
+	;impaSetVisibleAndJump y sale. Siguiente frame vuelve a llamar al subestado 5, hace la segunda parte del salto y vuelve otra vez a entrar aquí porque
+	;sigue sin ser 0. Siguiente vez que lo haga ya seguirá el código.
 
-	call objectSetVisible82
+	call objectSetVisible82 ;parece como algo de seguridad de que todo vaya bien. Si lo quitas aparecen algunos objetos raros.
 	ld h,d
 	ld l,Interaction.var38
-	ld (hl),$10
+	ld (hl),$10 ;pone en 10 el contador var38
 	jp interactionIncSubstate
 
+;después de 10 frames, Impa mira hacia Link y vuelve al subestado 4 (vuelve a saltar dos veces). Cuando vuelve a entrar aquí mira a Ralph y salta otras dos veces. 
 impaSubid2Substate6:
 	ld h,d
 	ld l,Interaction.var38
 	dec (hl)
-	ret nz
+	ret nz ;después de 10 frames sigue el código
 
-	ld (hl),$10
+	ld (hl),$10 ;recarga el contador var38 a 10
 
 	ld l,Interaction.counter2
 	ld a,(hl)
-	inc (hl)
-	cp $02
-	jr z,@nextState
-	or a
-	ld a,$03
-	jr z,+
-	xor $02
+	inc (hl) ;incrementa el contador 2
+	cp $02 
+	jr z,@nextState ;cuando contador 2 = 2 salta a @nextState. Es decir, cuando ya ha hecho los dos saltos mirando a Nayru, los dos saltos mirando a Link y los
+	;dos saltos mirando a Ralph
+	or a ; z = 0 si a era != 0, y z = 1 si a era = 0 
+	ld a,$03 ; a = 3
+	jr z,+ ; si a era 0 salta a +, sino sigue
+	xor $02 ; a = 1 suponiendo que a era 1 despues de inc (hl)
 +
+	;Impa repite los saltos pero mirando a Ralph y luego a Link
 	ld l,Interaction.substate
 	dec (hl)
-	dec (hl)
-	jp interactionSetAnimation
+	dec (hl) ;se pasa a dos subestados antes, al subestado 4
+	jp interactionSetAnimation ;se cambia la animación
 
+;cuando ha hecho ya todos los saltos pasa al siguiente estado y pone cfc0 = 2, haciendo que Ralph siga su código en scripts.s.
 @nextState:
-	ld (hl),$00
-	ld a,$02
-	ld ($cfc0),a
+	ld (hl),$00 ;contador2 = 0
+	ld a,$02 ;a = 2
+	ld ($cfc0),a ;cfc0 = 2
 	jp interactionIncSubstate
 
+; cuando Ralph hace una exclamación Impa se gira a mirarle
 impaSubid2Substate7:
 	call impaAnimateAndRunScript
 	ld a,($cfc0)
-	cp $03
+	cp $03 ;si cfc0 es 3 sigue el código. Esto lo pone Ralph cuando hace la exclamación.
 	ret c
-	jpab scriptHelp.turnToFaceSomething
+	jpab scriptHelp.turnToFaceSomething ;Impa se gira mirando a Ralph.
 
 ;;
 ; Impa tells you about Ralph's heritage (unlinked)

@@ -676,12 +676,14 @@ ralphAnimateBasedOnSpeedAndRunScript:
 	call interactionAnimateBasedOnSpeed
 	jp interactionRunScript
 
+;después de llegar a la estatua Ralph inicia un salto
 ralphSubid07Substate1:
 	call interactionIncSubstate
 	call objectSetVisiblec2
 	ld bc,-$1c0
 	call objectSetSpeedZ
 
+;Ralph termina el salto
 ralphSubid07Substate2:
 	ld c,$20
 	call objectUpdateSpeedZ_paramC
@@ -689,7 +691,7 @@ ralphSubid07Substate2:
 
 	call interactionIncSubstate
 	ld l,Interaction.var3e
-	inc (hl)
+	inc (hl) ;var3e a 1 para seguir el código del script ralphSubid07Script
 	jp objectSetVisible82
 
 ;;
