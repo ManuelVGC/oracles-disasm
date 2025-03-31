@@ -1539,7 +1539,9 @@ endgameCutsceneHandler_0a:
 	.dw @@substate3
 	.dw @@substate4
 
-; mientras la pantalla está en blanco, carga la nueva sala y todos los gráficos y objetos corrrespondientes, luego hace un fade a la sala
+; en los subestados 0, 1, 2, 3 y 4 se entra 4 veces. Una por cada vez que se quiera mostrar la combinación escena en sala más imagen de créditos
+; con créditos horizontales.
+; Mientras la pantalla está en blanco, carga la nueva sala y todos los gráficos y objetos corrrespondientes, luego hace un fade a la sala
 @@substate0:
 	xor a
 	ldh (<hOamTail),a ;pone a 0 hOamTail, que es "Where to put the next OAM object (low byte for wOam)". Parece ser el número de sprites en la OAM.
@@ -1557,7 +1559,7 @@ endgameCutsceneHandler_0a:
 	;limpia datos de la cutscene
 	ld a,$10 
 	ldh (<hOamTail),a ;pone OamTail a 10 (supuestamente está reservando espacio para nuevos sprites)
-	ld a,($cfde) ;guarda el valor de cfde
+	ld a,($cfde) ;guarda el valor de cfde. La primera vez es 0, irá aumentando hasta 3.
 	ld c,a 
 	call cutscene_clearCFC0ToCFDF ;limpia CFC0 - CFDF
 	ld a,c
@@ -1590,7 +1592,7 @@ endgameCutsceneHandler_0a:
 +
 	;se cargan los gráficos de la scene1 de los créditos con su paleta correspondiente
 	ld a,($cfde) 
-	add a ;se multiplica el valro cfde por 2 para hacerlo de 16 bits, que es lo que necesitamos ahora
+	add a ;se multiplica el valor cfde por 2 para hacerlo de 16 bits, que es lo que necesitamos ahora
 	add GFXH_CREDITS_SCENE1 ;selecciona el gráfico de los créditos scene1
 	call loadGfxHeader ;cargas esos gráficos
 	ld a,PALH_0f ;cambias la paleta
@@ -1647,8 +1649,8 @@ endgameCutsceneHandler_0a:
 	.db $ca $ca
 	.db $ca $ae
 
-;después de que se termine el fade a la sala y cuando se termine la escena del árbol Maku, Link, Nayru, Ralph, Impa y la estatua de Link tras la colleja
-;a Link, se hace un fade out a blanco 
+; después de que se termine el fade a la sala y, la primera vez, cuando se termine la escena del árbol Maku, Link, Nayru, Ralph, Impa y la
+; estatua de Link tras la colleja a Link, se hace un fade out a blanco 
 @@substate1:
 	ld a,(wPaletteThread_mode)
 	or a
@@ -1662,87 +1664,104 @@ endgameCutsceneHandler_0a:
 	ld (wTilesetAnimation),a ; settea wTilesetAnimation a ff
 	jp fadeoutToWhite
 
-
+;una vez la pantalla está blanca del todo, se carga la nueva imagen, se coloca a la izquierda y se hace ya el fade a la imagen
 @@substate2:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;espera que termine el fade para seguir
 	call incCbc2
-	call disableLcd
-	call clearWramBank1
-	ld a,($cfde)
-	add a
-	add GFXH_CREDITS_IMAGE1
-	call loadGfxHeader
-	ld hl,wTmpcbb3
-	ld (hl),$5a
+	call disableLcd ;apaga la pantalla
+	call clearWramBank1 ;limpia el bank1 de la vram
+
+	;carga la imagen
+	ld a,($cfde) ;a = cfde
+	add a ;se multiplica el valor cfde por 2 para hacerlo de 16 bits, que es lo que necesitamos ahora
+	add GFXH_CREDITS_IMAGE1 ;selecciona el gráfico que queremos
+	call loadGfxHeader ;cargamos el gráfico anterior
+	ld hl,wTmpcbb3 
+	ld (hl),$5a ;cargamos el contador wTmpcbb3 a 90 ($5a)
 	ld a,PALH_a1
-	call loadPaletteHeader
-	ld a,$04
-	call loadGfxRegisterStateIndex
-	ld a,($cfde)
-	ld hl,@@table_5f81
-	rst_addAToHl
-	ld a,(hl)
-	ld (wGfxRegs1.SCX),a
+	call loadPaletteHeader ;cargamos la paleta
+	ld a,$04 
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores
+
+	;coloca la imagen a la izquierda
+	ld a,($cfde) ; a = cfde
+	ld hl,@@table_5f81 
+	rst_addAToHl ;se usa cfde para apuntar a la entrada correspondiente de la tabla que indica dónde está la imagen en pantalla
+	ld a,(hl) 
+	ld (wGfxRegs1.SCX),a ;mueve la imagen a la izquierda
+
+	;centra la cámara 
 	ld a,$10
 	ldh (<hCameraX),a
+
 	xor a
-	ld ($cfdf),a
-	jp fadeinFromWhite
+	ld ($cfdf),a ;limpia cfdf
+	jp fadeinFromWhite ;fade a la imagen
+
+;se usa en para colocar la imagen a la izquierda en la pantalla
 @@table_5f81:
 	.db $00 $d0 $00 $d0
 	.db $00 $d0 $00 $d0
+
+; cuando se termina el fade se espera 90 frames y luego se cargan los créditos
 @@substate3:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando el fade termine se sigue el código
 	call decCbb3
-	ret nz
+	ret nz ;después de 90 frames después de que termine el fade se sigue el código
 	call incCbc2
 	call getFreeInteractionSlot
-	ret nz
-	ld (hl),INTERAC_CREDITS_TEXT_HORIZONTAL
-	inc l
+	ret nz ;mira a ver si hay espacio para añadir una interacción nueva
+	ld (hl),INTERAC_CREDITS_TEXT_HORIZONTAL ;carga los créditos horizontales
+	inc l ;apunta al subID
 	ld a,($cfde)
-	ldi (hl),a
-	ld (hl),$00
+	ldi (hl),a ;usa el valor de cfde como subID de la interacción y avanza a el siguiente byte. Una interacción la conforman tres bytes:
+	;tipo de interacción, en este caso INTERAC_CREDITS_TEXT_HORIZONTAL, subID y subestado ("fase" de la interacción)
+	ld (hl),$00 ;se marca la interacción en la primera fase, en el primer subestado, vaya
 	ret
+
+;cuando terminan de mostrarse los créditos horizontales, aumenta el contador créditos y si no ha terminado vuelve para ejecutar otra vez la combinación
+;escena en sala + imagen créditos con créditos horizontales. Cuando haya hecho esto un total de 4 veces, pasa a mostarr los créditos verticales.
 @@substate4:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;si no hay fade haciéndose, sigue el código
 	xor a
-	ldh (<hOamTail),a
-	ld a,($cfdf)
-	or a
-	ret z
-	ld b,$03
-	call checkIsLinkedGame
+	ldh (<hOamTail),a ;limpia hOAMTail para evitar gliches de sprites
+	ld a,($cfdf) 
+	or a 
+	ret z ;si cfdf = 0, no sigue el código. El cfdf lo cambian los créditos horizontales a ff cuando terminan.
+
+	ld b,$03 ;settea el valor de créditos máximo a 3
+	call checkIsLinkedGame ;comprueba si está linkado el juego
 	jr z,+
-	ld b,$07
+	ld b,$07 ;si está linkado, entonces el valor de créditos máximo es 7
 +
 	ld hl,$cfde
-	ld a,(hl)
-	cp b
-	jr nc,@@func_5fc7
-	inc (hl)
-	xor a
-	ld ($cbc2),a
+	ld a,(hl) ;carga cfde en a. Al principio cfde está en 0.
+	cp b ;compara si el contador de créditos ha llegado al final (hay X escenas de créditos que son contabilizadas con cfde)
+	jr nc,@@func_5fc7 ;si ya alcanzó el final se salta a una función de limpieza.
+	inc (hl) ;si no, incrementa cfde 
+	xor a 
+	ld ($cbc2),a ; pone a 0 cbc2. Volvemos al substate 0.
 	jr ++
 @@func_5fc7:
-	call cutscene_clearTmpCBB3
-	call cutscene_clearCFC0ToCFDF
+	call cutscene_clearTmpCBB3 ;limpia wTmpcbb3
+	call cutscene_clearCFC0ToCFDF ;limpia de cfc0 a cfdf
 	ld a,$02
-	ld ($cbc1),a
+	ld ($cbc1),a ;pone cbc1 a 2. Salta al state2.
 ++
-	jp fadeoutToWhite
+	jp fadeoutToWhite ;fade a blanco
 
 @state2:
-	jpab cutscenesBank10.agesFunc_10_70f6
+	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
 
-@state3:
-	jpab cutscenesBank10.agesFunc_10_7298
+@state3: 
+	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum
 
 ;;
 ; Called from disableLcdAndLoadRoom in bank 0.
