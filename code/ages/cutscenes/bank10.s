@@ -53,8 +53,8 @@ blackTowerEscape_simulatedInput4:
 
 
 agesFunc_10_70f6:
-	xor a
-	ldh (<hOamTail),a
+	xor a ;pone a = 0
+	ldh (<hOamTail),a ;limpia hOam
 	ld de,$cbc2
 	ld a,(de)
 	rst_jumpTable
@@ -67,52 +67,70 @@ agesFunc_10_70f6:
 	.dw @substate6
 	.dw @substate7
 	.dw @substate8
+
+;cuando la pantalla está blanca se limpian ciertos valores, se carga la imagen de los créditos verticales, se hace un fade a la imagen y se carga
+;la interacción de los créditos verticales
 @substate0:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call incCbc2
-	call disableLcd
-	call clearDynamicInteractions
-	call clearOam
-	xor a
-	ld ($cfde),a
-	ld a,GFXH_CREDITS_SCROLL
-	call loadGfxHeader
-	ld a,PALH_a0
-	call loadPaletteHeader
-	ld a,$09
-	call loadGfxRegisterStateIndex
+	ret nz ;cuando termine el fade a blanco sigue
+	call incCbc2 
+	call disableLcd ;apaga la pantalla
+	call clearDynamicInteractions ;limpia las interacciones
+	call clearOam ;limpia la Oam
+	xor a ;pone a = 0
+	ld ($cfde),a ;limpia cfde
+
+	ld a,GFXH_CREDITS_SCROLL ;gráficos que queremos cargar, en este caso la imagen que está por debajo cuando sales los créditos verticales.
+	call loadGfxHeader ;carga los gráficos anteriores en la VRAM
+	ld a,PALH_a0 ;paleta de colores que se va a usar
+	call loadPaletteHeader ;cargado de la paleta de colores
+
+	ld a,$09 ;carga en a el estado gráfico que queremos settear en la siguiente instrucción
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores 
+
 	call fadeinFromWhite
-	call getFreeInteractionSlot
+	call getFreeInteractionSlot ;mira si hay espacio para crear una interacción
 	ret nz
 	ld (hl),INTERAC_CREDITS_TEXT_VERTICAL
-	ld l,Interaction.yh
-	ld (hl),$e8
+
+	;se indica la posición y de los créditos en pantalla
+	ld l,Interaction.yh ;carga la coordenada y de la interacción
+	ld (hl),$e8 ;la parte alta de la coordenada y será $e8
 	inc l
 	inc l
-	ld (hl),$50
+	ld (hl),$50 ;y la parte baja será $50
 	ret
+
+;cuando hayan terminado los créditos verticales, inicializa dos contadores
 @substate1:
 	ld a,($cfdf)
 	or a
-	ret z
-	ld hl,wTmpcbb3
-	ld (hl),$e0
+	ret z ;cuando cfdf sea != 0 el código sigue. Esto lo pone != 0 el objeto interacción de los créditos verticales cuando terminan de mostrarse
+	ld hl,wTmpcbb3 
+	ld (hl),$e0 ;carga wTmpcbb3 con $e0
 	inc hl
-	ld (hl),$01
+	ld (hl),$01 ;carga wTmpcbb4 con $01
 	jp incCbc2
+
+;después de terminen los créditos se espera a que wTmpcbb3 llegue a 0 y luego se hace un fade a blanco
 @substate2:
 	ld hl,wTmpcbb3
 	call decHlRef16WithCap
-	ret nz
+	ret nz ;cuando wTmpcbb3 llegue a 0 el código sigue
 	call checkIsLinkedGame
-	jr nz,@func_7174
-	callab bank3Cutscenes.cutscene_clearTmpCBB3
+	jr nz,@func_7174 ;si es linked game entra en func7174
+	callab bank3Cutscenes.cutscene_clearTmpCBB3 ;limpia wTmpcbb3
 	ld a,$03
-	ld ($cbc1),a
-	ld a,$04
-	jp fadeoutToWhiteWithDelay
+	ld ($cbc1),a ;carga cbc1 a 3, es decir, pasamos al state3 del endgameCutsceneHandler_0a (endgameCutscenes.s) para mostrar ya la pantalla de The
+	;end
+	ld a,$04 ; a = 4
+	jp fadeoutToWhiteWithDelay ;hace fade a blanco
+
+
+;a partir de aquí se entra si el juego está linked
+
 @func_7174:
 	ld a,$04
 	ld (wTmpcbb3),a
@@ -135,6 +153,7 @@ agesFunc_10_70f6:
 	jr nz,-
 +
 	jp incCbc2
+
 @substate3:
 	ld a,(wGfxRegs1.SCY)
 	or a

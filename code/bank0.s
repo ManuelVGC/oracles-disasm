@@ -13658,7 +13658,7 @@ setUpCharactersAfterMoblinKeepDestroyed:
 interactionFunc_3e6d:
 	push de
 	ld l,Interaction.var03
-	ld e,(hl)
+	ld e,(hl) ;guarda var03 de la interacción actual
 
 	ldh a,(<hRomBank)
 	push af
@@ -13667,19 +13667,21 @@ interactionFunc_3e6d:
 .else
 	ld a,:data_4556
 .endif
-	setrombank
+	setrombank ;cambia de banco
 
-	ld a,e
+	ld a,e ;guarda var03 en a 
 .ifdef ROM_AGES
-	ld hl,bank16.data_4556
+	ld hl,bank16.data_4556 ;carga la dirección de los créditos en hl
 .else
 	ld hl,data_4556
 .endif
-	rst_addDoubleIndex
-	ldi a,(hl)
-	ld h,(hl)
-	ld l,a
-	call addSpritesToOam_withOffset
+	rst_addDoubleIndex ;busca en la tabla usando var03 como índice
+	ldi a,(hl) ;carga hl en a y pasa al byte alto
+	ld h,(hl) ;carga el byte alto en h
+	ld l,a ;y carga el byte bajo en l
+	;entonces hl termina con los 16 bits que se han extraído de la tabla
+
+	call addSpritesToOam_withOffset ;añades esos sprites a la Oam
 	pop af
 	setrombank
 	pop de

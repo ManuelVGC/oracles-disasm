@@ -19,9 +19,11 @@ data_4556:
 	.dw data_4556_10
 
 
+;Scenario. Flagship
+;ab es para la palabra Scenario y d0 para Flagship
 data_4556_0:
 	.db $10
-	.db $ab $e0 $40 $01
+	.db $ab $e0 $40 $01 ;e0 indica la letra. $40 parece que la posición. $01 parece que final de letra.
 	.db $ab $ea $42 $01
 	.db $ab $f4 $44 $01
 	.db $ab $fe $46 $01

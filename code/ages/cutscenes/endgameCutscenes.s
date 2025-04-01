@@ -1725,7 +1725,8 @@ endgameCutsceneHandler_0a:
 	ret
 
 ;cuando terminan de mostrarse los créditos horizontales, aumenta el contador créditos y si no ha terminado vuelve para ejecutar otra vez la combinación
-;escena en sala + imagen créditos con créditos horizontales. Cuando haya hecho esto un total de 4 veces, pasa a mostarr los créditos verticales.
+;escena en sala + imagen créditos con créditos horizontales. Cuando haya hecho esto un total de 4 veces, hace un fade a blanco y pasa a mostrar
+;los créditos verticales.
 @@substate4:
 	ld a,(wPaletteThread_mode)
 	or a
@@ -1761,7 +1762,7 @@ endgameCutsceneHandler_0a:
 	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
 
 @state3: 
-	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum
+	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum. 
 
 ;;
 ; Called from disableLcdAndLoadRoom in bank 0.
