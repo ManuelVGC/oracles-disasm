@@ -19,11 +19,20 @@ data_4556:
 	.dw data_4556_10
 
 
-;Scenario. Flagship
-;ab es para la palabra Scenario y d0 para Flagship
+;El primer dígito indica la posición vertical de la letra. Por ejemplo, en data_4556_1 pone YUSUKE NAKANO. YUSUKE en d0 y NAKANO una línea más abajo
+;en e0. En data_4556_2 pone AUGEN  Y.TANAKA. AUGEN en d0 y Y.TANAKA dos líneas más abajo, en f0.
+;El segundo dígito es el offset horizontal. Si dos letras tienen el mismo (también el mismo offset vertical, primer dígito) estarán en el mismo sitio
+;El tercer dígito indica la letra. Es posición de la letra en el abecedario (empezando en 0) multiplicado por 2.
+;El cuarto dígito es la paleta. 01 es azul, 00 es blanco.
+
+;Primer byte: Posición vertical (Y).
+;Segundo byte: Posición horizontal (X).
+;Tercer byte: Código de letra (incrementos de 2, empezando en $00 para la "A").
+;Cuarto byte: Paleta de colores (00 para blanco, 01 para azul).
+
 data_4556_0:
 	.db $10
-	.db $ab $e0 $40 $01 ;e0 indica la letra. $40 parece que la posición. $01 parece que final de letra.
+	.db $ab $e0 $40 $01
 	.db $ab $ea $42 $01
 	.db $ab $f4 $44 $01
 	.db $ab $fe $46 $01
