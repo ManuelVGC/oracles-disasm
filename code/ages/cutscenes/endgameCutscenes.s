@@ -1762,7 +1762,7 @@ endgameCutsceneHandler_0a:
 	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
 
 @state3: 
-	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum. 
+	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum. Termina el juego.
 
 ;;
 ; Called from disableLcdAndLoadRoom in bank 0.
@@ -1957,15 +1957,19 @@ func_60e0:
 	ld (hl),b
 	jp disableActiveRing
 
-;;
+;; Temas de información relativa a Link
 func_60f1:
 	ld hl,wLinkMaxHealth
-	ldd a,(hl)
-	ld (hl),a
-	ld hl,wcde3
-	ldi a,(hl)
-	ld b,(hl)
-	ld hl,wInventoryB
-	ldi (hl),a
-	ld (hl),b
+	ldd a,(hl) ;guarda wLinkMaxHealth en a y decrementa hl
+	ld (hl),a ;guarda wLinkMaxHealth en hl - 1
+
+	;guardas los dos bytes de wcd3
+	ld hl,wcde3 ;hl apunta a wcde3
+	ldi a,(hl) ;guarda wcd3 en a e incrementa hl
+	ld b,(hl) ;guarda hl + 1 en b
+
+	;copias los dos bytes de wcd3 en el inventario
+	ld hl,wInventoryB ;hl apunta al inventario
+	ldi (hl),a ;se guarda wcd3 en el inventario y se aumenta hl
+	ld (hl),b ;se carga el siguiente byte de wcd3 en el inventario
 	jp enableActiveRing

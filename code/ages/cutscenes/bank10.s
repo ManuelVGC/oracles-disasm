@@ -283,6 +283,7 @@ agesFunc_10_70f6:
 	jp fadeoutToWhiteWithDelay
 
 
+;pantalla de the end
 agesFunc_10_7298:
 	ld de,$cbc2
 	ld a,(de)
@@ -301,19 +302,21 @@ agesFunc_10_7298:
 	.dw @substateA
 	.dw @substateB
 .endif
+
+;limpia memoria y hace fade a la imagen ya de The End
 @substate0:
 	call checkIsLinkedGame
-	call nz,agesFunc_10_70f6@func_71fd
+	call nz,agesFunc_10_70f6@func_71fd ;si el juego está vinculado entra aquí
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call disableLcd
-	call incCbc2
-	callab bank3Cutscenes.func_60f1
-	call clearDynamicInteractions
-	call clearOam
+	ret nz ;cuando no haya fade activo sigue
+	call disableLcd ;apaga la pantalla
+	call incCbc2 
+	callab bank3Cutscenes.func_60f1 ;temas de información relativa a Link, rollo vida actual e inventario
+	call clearDynamicInteractions ;se limpian interacciones
+	call clearOam ;se limpia la OAM
 	call checkIsLinkedGame
-	jp z,@func_72ec
+	jp z,@func_72ec ;si el juego no está linked salta a func_72ec
 	ld a,GFXH_CREDITS_LINKED_THE_END
 	call loadGfxHeader
 	ld a,PALH_aa
@@ -321,27 +324,34 @@ agesFunc_10_7298:
 	ld hl,objectData.objectData5574
 	call parseGivenObjectData
 	jr ++
+
 @func_72ec:
-	ld a,GFXH_CREDITS_THE_END
-	call loadGfxHeader
+	ld a,GFXH_CREDITS_THE_END 
+	call loadGfxHeader ;carga los gráficos de the end
 	ld a,PALH_a9
-	call loadPaletteHeader
+	call loadPaletteHeader ;carga la paleta correspondiente
 ++
 	ld a,$04
-	call loadGfxRegisterStateIndex
-	xor a
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores
+
+	;centra la cámara
+	xor a 
 	ld hl,hCameraY
 	ldi (hl),a
 	ldi (hl),a
 	ldi (hl),a
 	ld (hl),a
-	ld hl,wTmpcbb3
-	ld (hl),$f0
-	ld (hl),a
+
+	ld hl,wTmpcbb3 
+	ld (hl),$f0 ;se carga el contador wTmpcbb3 a 240
+	ld (hl),a ;luego carga 0 en wTmpcbb3 parece
 	ld a,SNDCTRL_MEDIUM_FADEOUT
-	call playSound
+	call playSound ;hace fade de la música
 	ld a,$04
-	jp fadeinFromWhiteWithDelay
+	jp fadeinFromWhiteWithDelay ;fade a la imagen
+
+;cuando haya terminado el fade a la imagen sigue
 @substate1:
 	ld a,(wPaletteThread_mode)
 	or a
@@ -349,7 +359,7 @@ agesFunc_10_7298:
 	call incCbc2
 @func_731b:
 	call checkIsLinkedGame
-	ret z
+	ret z ;si el juego no está linked, sale
 	ld hl,wTmpcbb4
 	ld a,(hl)
 	or a
@@ -381,33 +391,41 @@ agesFunc_10_7298:
 @@data:
 	.db $a0 $c8 $10 $f0
 
+;después de que el fade a la imagen haya terminado, espera 240 frames
 @substate2:
-	call @func_731b
+	call @func_731b ;no hace nada si el juego no está linked
 	call decCbb3
-	ret nz
+	ret nz ;cuando wTmpcbb3 sea 0 sigue
 	call incCbc2
+
+;cuando el jugador pulsa A, B o START, se hace un fade a blanco
 @substate3:
+	;temas de juego linked
 	call @func_731b
 	ld hl,wFileIsLinkedGame
 	ldi a,(hl)
 	add (hl)
 	cp $02
 	ret z
-	ld a,(wKeysJustPressed)
+
+	ld a,(wKeysJustPressed) ;botón que presiona el jugador
 	and (BTN_A|BTN_B|BTN_START)
 	ret z
 	call incCbc2
-	jp fadeoutToWhite
+	jp fadeoutToWhite ;cuando pulsa alguno de los botones anteriores se hace fade a blanco
+
+;genera el código secreto a Holodrum, limpia memorias y hace un fade a ese código
 @substate4:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call incCbc2
-	call disableLcd
-	callab bank3.generateGameTransferSecret
-	ld a,$ff
-	ld (wTmpcbba),a
-	
+	ret nz 
+	call incCbc2 ;cuando termina el fade a blanco sigue
+	call disableLcd ;apaga la pantalla
+	callab bank3.generateGameTransferSecret ;genera el código de Holodrum
+	ld a,$ff 
+	ld (wTmpcbba),a ;carga wTmpcbba con ff
+
+	;cambia de banco para conseguir los gráficos del secreto
 	ld a,($ff00+R_SVBK)
 	push af
 	ld a,TEXT_BANK
@@ -420,58 +438,73 @@ agesFunc_10_7298:
 	call copyTextCharacterGfx
 	dec b
 	jr nz,-
+
+	;vuelve al banco anterior
 	pop af
 	ld ($ff00+R_SVBK),a
 	
-	ld a,GFXH_SECRET_FOR_LINKED_GAME
-	call loadGfxHeader
-	ld a,PALH_05
-	call loadPaletteHeader
+	ld a,GFXH_SECRET_FOR_LINKED_GAME 
+	call loadGfxHeader ;carga los gráficos
+	ld a,PALH_05 
+	call loadPaletteHeader ;carga la paleta
 	ld a,UNCMP_GFXH_2b
-	call loadUncompressedGfxHeader
+	call loadUncompressedGfxHeader ;carga más gráficos
+
+	;si el juego es linked
 	call checkIsLinkedGame
 	ld a,GFXH_HEROS_SECRET_TEXT
 	call nz,loadGfxHeader
-	call clearDynamicInteractions
-	call clearOam
+
+	call clearDynamicInteractions ;borra las interacciones
+	call clearOam ;limpia la Oam
 	ld a,$04
-	call loadGfxRegisterStateIndex
+	call loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores
 	ld hl,wTmpcbb3
-	ld (hl),$3c
-	call fileSelect_redrawDecorations
-	jp fadeinFromWhite
+	ld (hl),$3c ;carga el contador wTmpcbb3 a 60
+	call fileSelect_redrawDecorations ;limpia la Oam y pone algunos gráficos en pantalla
+	jp fadeinFromWhite ;se muestra el secreto de Holodrum
+
+;después de que termine el fade, espera 60 frames y reestablece en contador a 60
 @substate5:
-	call fileSelect_redrawDecorations
+	call fileSelect_redrawDecorations ;limpia la Oam y pone algunos gráficos en pantalla
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call decCbb3
-	ret nz
+	ret nz ;cuando termine el fade sigue
+	call decCbb3 
+	ret nz ;después de 60 frames sigue
 	ld hl,wTmpcbb3
-	ld b,$3c
+	ld b,$3c 
 	call checkIsLinkedGame
-	jr z,+
+	jr z,+ ;si no está linked salta a +
 	ld b,$b4
 +
-	ld (hl),b
+	ld (hl),b ;carga wTmpcbb3 a 60
 	jp incCbc2
+
+;espera 60 frames y luego crea la interacción del texto para guardar al final del juego
 @substate6:
-	call fileSelect_redrawDecorations
-	call decCbb3
-	ret nz
+	call fileSelect_redrawDecorations ;limpia la Oam y pone algunos gráficos en pantalla
+	call decCbb3 
+	ret nz ;después de 60 frames sigue
 	call checkIsLinkedGame
+	jr nz,+ ;si está linkado salta a +
+	call getFreeInteractionSlot ;crea una ranura para interacción
 	jr nz,+
-	call getFreeInteractionSlot
-	jr nz,+
-	ld (hl),$d1
+	ld (hl),$d1 ;escribe d1 en la interacción especial que se crea. Es la interacción del texto de juego completado ("Save and quit?")
+	;en esa interacción d1 se ve cómo crear un texto con opciones y guardado (INTERAC_GAME_COMPLETE_DIALOG). En esta interacción se marca
+	;también el juego como completado si se guarda la partida.
 	xor a
-	ld ($cfde),a
+	ld ($cfde),a ;pone cfde a 0 (lo usa la interacción como marca de si ya has guardado/no guardado ya la partida). Esto se pone a 0 aquí porque es
+	;en el frame siguiente cuando ya sea empieza a ejecutar la interacción y ya usa el cfde partido de cfde = 0.
 +
 	jp incCbc2
+
+;cuando el jugador termine de guardar/no guardar, se hace fade a blanco
 @substate7:
-	call fileSelect_redrawDecorations
+	call fileSelect_redrawDecorations ;limpia la Oam y pone algunos gráficos en pantalla
 	call checkIsLinkedGame
-	jr z,@func_7407
+	jr z,@func_7407 ;si no está linked salta a func_7407
 	ld a,(wKeysJustPressed)
 	and $01
 	jr nz,++
@@ -479,40 +512,47 @@ agesFunc_10_7298:
 @func_7407:
 	ld a,($cfde)
 	or a
-	ret z
+	ret z ;cuando sea cfde sea distinto de 0, el código sigue (esto lo pone a 1 la interacción cuando terminas de guardar/no guardar al terminar el
+	;juego)
 ++
 	call incCbc2
-	ld a,SNDCTRL_FAST_FADEOUT
-	call playSound
-	jp fadeoutToWhite
+	ld a,SNDCTRL_FAST_FADEOUT 
+	call playSound ;hace un fade de la música
+	jp fadeoutToWhite ;fundido a blanco
+
+
+;cuando se haya terminado el fade se limpia la memoria, se carga la imagen de To be continued y se hace fade a la imagen
 @substate8:
-	call fileSelect_redrawDecorations
+	call fileSelect_redrawDecorations ;limpia la Oam y pone algunos gráficos en pantalla
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando haya terminado el fade sigue
 
 .ifdef REGION_JP
 	jp resetGame
 .else
 	call checkIsLinkedGame
-	jp nz,resetGame
-	call disableLcd
-	call clearOam
+	jp nz,resetGame ;si el juego no está vinculado, sigue
+	call disableLcd ;apaga la pantalla
+	call clearOam ;limpia la Oam
 	call incCbc2
-	ld a,GFXH_TO_BE_CONTINUED
-	call loadGfxHeader
+	ld a,GFXH_TO_BE_CONTINUED 
+	call loadGfxHeader ;carga el gráfico de continuará
 	ld a,PALH_a7
-	call loadPaletteHeader
-	call fadeinFromWhite
+	call loadPaletteHeader ;carga la paleta
+	call fadeinFromWhite ;fade a la imagen
 	ld a,$04
-	jp loadGfxRegisterStateIndex
+	jp loadGfxRegisterStateIndex ;función que se llama después de cambiar los gráficos en la vram con la instrucción anterior. Se asegura que esté correcto el
+	;estado gráfico de toda la pantalla después de hacer los cambios anteriores
+
+;cuando termina el fade a la imagen carga el contador a 180
 @substate9:
 	call @func_7450
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando termine el fade sigue
 	ld hl,wTmpcbb3
-	ld (hl),$b4
+	ld (hl),$b4 ;carga el contador wTmpcbb3 a 180
 	jp incCbc2
 @func_7450:
 	ld hl,bank16.oamData_4fec
@@ -520,7 +560,9 @@ agesFunc_10_7298:
 	ld bc,$3038
 	xor a
 	ldh (<hOamTail),a
-	jp addSpritesFromBankToOam_withOffset
+	jp addSpritesFromBankToOam_withOffset ;limpia sprites anteriores y carga unos nuevos en la Oam
+
+;durante 180 frames, si pulsa el jugador pulsa el botón A se funde a blanco, sino, al final de los 180 frames
 @substateA:
 	call @func_7450
 	ld hl,wTmpcbb3
@@ -535,6 +577,8 @@ agesFunc_10_7298:
 	ret z
 	call incCbc2
 	jp fadeoutToWhite
+
+;cuando termine el fade resetea el juego
 @substateB:
 	call @func_7450
 	ld a,(wPaletteThread_mode)
