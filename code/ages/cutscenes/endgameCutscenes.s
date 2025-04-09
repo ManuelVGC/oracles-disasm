@@ -1765,6 +1765,9 @@ endgameCutsceneHandler_0a:
 	or a
 	ret nz ;si no es 0 es que hay un fade, este código espera a que acabe el fade para seguir
 
+	ld a,MUS_CREDITS_2 
+	call playSound
+
 	call cutscene_clearTmpCBB3 ;limpia wTmpcbb3
 	call cutscene_clearCFC0ToCFDF ;limpia de cfc0 a cfdf
 	
