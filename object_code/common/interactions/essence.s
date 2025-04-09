@@ -293,24 +293,26 @@ interaction7f_subid00:
 	jp interactionSetScript
 
 
+
 ; State 6: running script (essence get cutscene)
 @state6:
+	
 	call interactionRunScript
 	ret nc
 
 	call interactionIncState
-	ld l,Interaction.counter1
-	ld (hl),30
 
+	jp fadeoutToWhite
 
-; State 7: After a delay, fade out
 @state7:
-	call interactionDecCounter1
-	ret nz
+	ld a,(wPaletteThread_mode) ;si es 0 es que no hay fade activo 
+	or a
+	ret nz ;si es 0 se sigue con el código
 
-	;inicia el cutscene
-	ld a,CUTSCENE_BLACK_TOWER_ESCAPE
+	ld a,CUTSCENE_CREDITS
 	ld (wCutsceneTrigger),a
+
+	jp interactionDelete
 
 ; Each row is warp data for getting an essence.
 ;   b0: wWarpDestGroup

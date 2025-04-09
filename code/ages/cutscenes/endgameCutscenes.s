@@ -222,7 +222,6 @@ endgameCutsceneHandler_09_stage0:
 	call incCbc2
 	jp fadeoutToWhite
 
-
 ;como el state0 pero cambiando a otra sala. Mientras está la pantalla blanca aprovecha para hacer el cambio de sala, poner a Ambi y los guardias y demás.
 @state9:
 	;espera a que se termine el fadeout para seguir con el código
@@ -639,6 +638,7 @@ endgameCutsceneHandler_09_stage1:
 	call playSound ;suena un rayo
 	jp incCbc2
 
+;se muestra el close up de una twinrova
 @state8:
 	call @loadCertainOamData2 ;carga nuevos datos en la OAM
 	ld hl,wTmpcbb3 
@@ -1464,10 +1464,11 @@ endgameCutsceneHandler_0a:
 	ld de,$cbc1
 	ld a,(de)
 	rst_jumpTable
-	.dw @state0
-	.dw @state1
+	;.dw @state0
+	;.dw @state1
 	.dw @state2
 	.dw @state3
+	.dw @state4
 @state0:
 	ld de,$cbc2
 	ld a,(de)
@@ -1758,10 +1759,36 @@ endgameCutsceneHandler_0a:
 ++
 	jp fadeoutToWhite ;fade a blanco
 
+
 @state2:
+	ld a,(wPaletteThread_mode)
+	or a
+	ret nz ;si no es 0 es que hay un fade, este código espera a que acabe el fade para seguir
+
+	call cutscene_clearTmpCBB3 ;limpia wTmpcbb3
+	call cutscene_clearCFC0ToCFDF ;limpia de cfc0 a cfdf
+	
+	ld a,$01
+	ld ($cbc1),a
+
+	call clearScreenVariablesAndWramBank1 ;limpia ciertas variables y la RAM del banco 1
+	ld hl,wLinkInAir
+	ld b,wcce9-wLinkInAir
+	call clearMemory ;se borra cierta sección de la RAM
+	call clearOam ;limpia posibles residuos gráficos en la OAM
+	ld a,$10
+	ldh (<hOamTail),a
+	call resetCamera
+	call cutscene_clearObjects
+
+	ld a,$ff 
+	ld (wTilesetAnimation),a
+	ret
+
+@state3:
 	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
 
-@state3: 
+@state4: 
 	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum. Termina el juego.
 
 ;;

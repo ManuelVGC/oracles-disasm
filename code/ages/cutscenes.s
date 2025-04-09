@@ -56,8 +56,12 @@ cutscene0f:
 ;;
 ; CUTSCENE_CREDITS
 cutscene0a:
+	call func_1613
+
 	ld e,$01
+
 	jp endgameCutsceneHandler
+	
 
 ;;
 ; CUTSCENE_FLAME_OF_DESPAIR

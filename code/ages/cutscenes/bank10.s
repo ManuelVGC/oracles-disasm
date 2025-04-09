@@ -73,13 +73,17 @@ agesFunc_10_70f6:
 @substate0:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz ;cuando termine el fade a blanco sigue
+	ret nz ;si no es 0 es que hay un fade, este código espera a que acabe el fade para seguir
 	call incCbc2 
-	call disableLcd ;apaga la pantalla
-	call clearDynamicInteractions ;limpia las interacciones
-	call clearOam ;limpia la Oam
+
+	call disableLcd
+	call clearDynamicInteractions
+	call clearOam
+
+
 	xor a ;pone a = 0
 	ld ($cfde),a ;limpia cfde
+
 
 	ld a,GFXH_CREDITS_SCROLL ;gráficos que queremos cargar, en este caso la imagen que está por debajo cuando sales los créditos verticales.
 	call loadGfxHeader ;carga los gráficos anteriores en la VRAM
@@ -122,9 +126,9 @@ agesFunc_10_70f6:
 	call checkIsLinkedGame
 	jr nz,@func_7174 ;si es linked game entra en func7174
 	callab bank3Cutscenes.cutscene_clearTmpCBB3 ;limpia wTmpcbb3
-	ld a,$03
+	ld a,$02
 	ld ($cbc1),a ;carga cbc1 a 3, es decir, pasamos al state3 del endgameCutsceneHandler_0a (endgameCutscenes.s) para mostrar ya la pantalla de The
-	;end
+	;end (;originalmente estaba a 3 pero al comentar states en el cutscene de credtis, queda en 1)
 	ld a,$04 ; a = 4
 	jp fadeoutToWhiteWithDelay ;hace fade a blanco
 
@@ -277,8 +281,8 @@ agesFunc_10_70f6:
 	call decCbb3
 	ret nz
 	callab bank3Cutscenes.cutscene_clearTmpCBB3
-	ld a,$03
-	ld ($cbc1),a
+	ld a,$02
+	ld ($cbc1),a ;originalmente estaba a 3 pero al comentar states en el cutscene de credtis, queda en 1
 	ld a,$04
 	jp fadeoutToWhiteWithDelay
 
