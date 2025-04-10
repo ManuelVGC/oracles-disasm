@@ -309,8 +309,6 @@ agesFunc_10_7298:
 
 ;limpia memoria y hace fade a la imagen ya de The End
 @substate0:
-	call checkIsLinkedGame
-	call nz,agesFunc_10_70f6@func_71fd ;si el juego está vinculado entra aquí
 	ld a,(wPaletteThread_mode)
 	or a
 	ret nz ;cuando no haya fade activo sigue
@@ -319,15 +317,7 @@ agesFunc_10_7298:
 	callab bank3Cutscenes.func_60f1 ;temas de información relativa a Link, rollo vida actual e inventario
 	call clearDynamicInteractions ;se limpian interacciones
 	call clearOam ;se limpia la OAM
-	call checkIsLinkedGame
-	jp z,@func_72ec ;si el juego no está linked salta a func_72ec
-	ld a,GFXH_CREDITS_LINKED_THE_END
-	call loadGfxHeader
-	ld a,PALH_aa
-	call loadPaletteHeader
-	ld hl,objectData.objectData5574
-	call parseGivenObjectData
-	jr ++
+	jp @func_72ec
 
 @func_72ec:
 	ld a,GFXH_CREDITS_THE_END 
@@ -361,14 +351,6 @@ agesFunc_10_7298:
 	or a
 	ret nz
 	call incCbc2
-@func_731b:
-	call checkIsLinkedGame
-	ret z ;si el juego no está linked, sale
-	ld hl,wTmpcbb4
-	ld a,(hl)
-	or a
-	jr z,@playWaveSoundAtRandomIntervals_body
-	dec (hl)
 	ret
 
 ;;
@@ -397,21 +379,12 @@ agesFunc_10_7298:
 
 ;después de que el fade a la imagen haya terminado, espera 240 frames
 @substate2:
-	call @func_731b ;no hace nada si el juego no está linked
 	call decCbb3
 	ret nz ;cuando wTmpcbb3 sea 0 sigue
 	call incCbc2
 
 ;cuando el jugador pulsa A, B o START, se hace un fade a blanco
 @substate3:
-	;temas de juego linked
-	call @func_731b
-	ld hl,wFileIsLinkedGame
-	ldi a,(hl)
-	add (hl)
-	cp $02
-	ret z
-
 	ld a,(wKeysJustPressed) ;botón que presiona el jugador
 	and (BTN_A|BTN_B|BTN_START)
 	ret z
@@ -422,21 +395,24 @@ agesFunc_10_7298:
 @substate4:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz 
-	call incCbc2 ;cuando termina el fade a blanco sigue
-	call disableLcd ;apaga la pantalla
-	callab bank3.generateGameTransferSecret ;genera el código de Holodrum
-	ld a,$ff 
-	ld (wTmpcbba),a ;carga wTmpcbba con ff
+	ret nz
+
+	jp resetGame
+
+	;call incCbc2 ;cuando termina el fade a blanco sigue
+	;call disableLcd ;apaga la pantalla
+	;callab bank3.generateGameTransferSecret ;genera el código de Holodrum
+	;ld a,$ff 
+	;ld (wTmpcbba),a ;carga wTmpcbba con ff
 
 	;cambia de banco para conseguir los gráficos del secreto
-	ld a,($ff00+R_SVBK)
-	push af
-	ld a,TEXT_BANK
-	ld ($ff00+R_SVBK),a
-	ld hl,w7SecretText1
-	ld de,w7d800
-	ld bc,$1800
+	;ld a,($ff00+R_SVBK)
+	;push af
+	;ld a,TEXT_BANK
+	;ld ($ff00+R_SVBK),a
+	;ld hl,w7SecretText1
+	;ld de,w7d800
+	;ld bc,$1800
 -
 	ldi a,(hl)
 	call copyTextCharacterGfx
