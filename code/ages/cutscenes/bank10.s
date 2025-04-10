@@ -113,9 +113,9 @@ agesFunc_10_70f6:
 	or a
 	ret z ;cuando cfdf sea != 0 el código sigue. Esto lo pone != 0 el objeto interacción de los créditos verticales cuando terminan de mostrarse
 	ld hl,wTmpcbb3 
-	ld (hl),$e0 ;carga wTmpcbb3 con $e0
+	ld (hl),$90 ;carga wTmpcbb3 con $e0
 	inc hl
-	ld (hl),$01 ;carga wTmpcbb4 con $01
+	ld (hl),$01 ;carga la parte alta de wTmpcbb3 con $01. Es decir wTmpcbb3 termina valiendo $01e0 = 480 
 	jp incCbc2
 
 ;después de terminen los créditos se espera a que wTmpcbb3 llegue a 0 y luego se hace un fade a blanco
@@ -123,48 +123,19 @@ agesFunc_10_70f6:
 	ld hl,wTmpcbb3
 	call decHlRef16WithCap
 	ret nz ;cuando wTmpcbb3 llegue a 0 el código sigue
-	call checkIsLinkedGame
-	jr nz,@func_7174 ;si es linked game entra en func7174
-	callab bank3Cutscenes.cutscene_clearTmpCBB3 ;limpia wTmpcbb3
-	ld a,$02
-	ld ($cbc1),a ;carga cbc1 a 3, es decir, pasamos al state3 del endgameCutsceneHandler_0a (endgameCutscenes.s) para mostrar ya la pantalla de The
-	;end (;originalmente estaba a 3 pero al comentar states en el cutscene de credtis, queda en 1)
-	ld a,$04 ; a = 4
+
+	call incCbc2
+	ld a,SNDCTRL_MEDIUM_FADEOUT
+	call playSound ;hace fade de la música
+	ld a,$02 ; a = 2
 	jp fadeoutToWhiteWithDelay ;hace fade a blanco
 
-
-;a partir de aquí se entra si el juego está linked
-
-@func_7174:
-	ld a,$04
-	ld (wTmpcbb3),a
-	ld a,(wGfxRegs1.SCY)
-	ldh (<hCameraY),a
-	ld a,UNCMP_GFXH_01
-	call loadUncompressedGfxHeader
-	ld a,PALH_0b
-	call loadPaletteHeader
-	ld b,$03
--
-	call getFreeInteractionSlot
-	jr nz,+
-	ld (hl),INTERAC_INTRO_SPRITES_1
-	inc l
-	ld (hl),$09
-	inc l
-	dec b
-	ld (hl),b
-	jr nz,-
-+
-	jp incCbc2
-
 @substate3:
-	ld a,(wGfxRegs1.SCY)
+	ld a,(wPaletteThread_mode)
 	or a
-	jr nz,@func_71aa
-	ld a,$78
-	ld (wTmpcbb3),a
-	jp incCbc2
+	ret nz ;si no es 0 es que hay un fade, este código espera a que acabe el fade para seguir
+	jp resetGame
+
 @func_71aa:
 	call decCbb3
 	ret nz
@@ -340,8 +311,7 @@ agesFunc_10_7298:
 	ld hl,wTmpcbb3 
 	ld (hl),$f0 ;se carga el contador wTmpcbb3 a 240
 	ld (hl),a ;luego carga 0 en wTmpcbb3 parece
-	ld a,SNDCTRL_MEDIUM_FADEOUT
-	call playSound ;hace fade de la música
+	
 	ld a,$04
 	jp fadeinFromWhiteWithDelay ;fade a la imagen
 
@@ -388,8 +358,12 @@ agesFunc_10_7298:
 	ld a,(wKeysJustPressed) ;botón que presiona el jugador
 	and (BTN_A|BTN_B|BTN_START)
 	ret z
-	call incCbc2
-	jp fadeoutToWhite ;cuando pulsa alguno de los botones anteriores se hace fade a blanco
+	callab bank3Cutscenes.cutscene_clearTmpCBB3 ;limpia wTmpcbb3
+	ld a,$02
+	ld ($cbc1),a ;carga cbc1 a 3, es decir, pasamos al state3 del endgameCutsceneHandler_0a (endgameCutscenes.s) para mostrar ya la pantalla de The
+	;end (;originalmente estaba a 3 pero al comentar states en el cutscene de credtis, queda en 1)
+	ld a,$04 ; a = 4
+	jp fadeoutToWhiteWithDelay ;hace fade a blanco
 
 ;genera el código secreto a Holodrum, limpia memorias y hace un fade a ese código
 @substate4:

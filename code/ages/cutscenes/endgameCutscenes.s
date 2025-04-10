@@ -1789,10 +1789,10 @@ endgameCutsceneHandler_0a:
 	ret
 
 @state3:
-	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
-
-@state4: 
 	jpab cutscenesBank10.agesFunc_10_7298 ;pantalla de the end + secret to holodrum. Termina el juego.
+	
+@state4: 
+	jpab cutscenesBank10.agesFunc_10_70f6 ;créditos verticales
 
 ;;
 ; Called from disableLcdAndLoadRoom in bank 0.
