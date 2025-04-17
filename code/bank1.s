@@ -5353,7 +5353,8 @@ cutscene14:
 
 .endif
 
-;;
+;; Carga la primera habitación del juego después del "Accept our quest, hero!". Si el warp es a una sala de dungeon la cámara da problemas al ser la sala más grande
+; que las salas del overworld. Si se quiere hacer esto hay que poner los valores de la cámara a dónde está Link justo antes de hacer el fade-in en el state0.
 linkSummonedCutscene:
 	call func_7b93
 	jp updateAllObjects
@@ -5366,6 +5367,7 @@ func_7b93:
 	.dw @state1
 	.dw @state2
 
+; Preparación de la nueva room y fade in
 @state0:
 	ld hl,wCutsceneIndex
 	inc (hl)
@@ -5392,9 +5394,11 @@ func_7b93:
 	ldh (<hNextLcdInterruptBehaviour),a
 	ld a,SND_WARP_START
 	call playSound
-	ld a,$ff
+	ld a,$ff ;si cambias esto por xor a (también antes del resto de veces que se llama a initWaveScrollValues) ya no aparece el wave ese de transición. Además,
+	;si pones un número más bajo aquí en vez de ff, el efecto de wave se suaviza.
 	jp initWaveScrollValues
 
+; Esperar a que termine el fade
 @state1:
 	ld a,$01
 	call loadBigBufferScrollValues
@@ -5412,6 +5416,7 @@ func_7b93:
 	ld (wGenericCutscene.cbb3),a
 	ret
 
+; Warp de Link
 @state2:
 	ld a,(wGenericCutscene.cbb3)
 	rst_jumpTable
@@ -5425,7 +5430,7 @@ func_7b93:
 	ld hl,wGenericCutscene.cbb4
 	dec (hl)
 	dec (hl)
-	ld a,(hl)
+	ld a,(hl) ;si cambias esto por xor a (también antes del resto de veces que se llama a initWaveScrollValues) ya no aparece el wave ese de transición.
 	call initWaveScrollValues
 	ld a,(wGenericCutscene.cbb4)
 	cp $80
@@ -5438,7 +5443,7 @@ func_7b93:
 	ld a,LINK_STATE_WARPING
 	ld (wLinkForceState),a
 	ld a,$0b
-	ld (wWarpTransition),a
+	ld (wWarpTransition),a ;esta transition es la forma en la que cae Link en la nueva sala.
 	ret
 
 @substate1:
@@ -5449,7 +5454,7 @@ func_7b93:
 	jr z,+
 	dec (hl)
 +
-	ld a,(hl)
+	ld a,(hl) ;si cambias esto por xor a (también antes del resto de veces que se llama a initWaveScrollValues) ya no aparece el wave ese de transición.
 	call initWaveScrollValues
 	ld a,(wGenericCutscene.cbb4)
 	or a

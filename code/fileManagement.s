@@ -364,10 +364,14 @@ initialFileVariables:
 .ifdef ROM_AGES
 	; Initial spawn location
 	.db <wDeathRespawnBuffer.group,		$00
-	.db <wDeathRespawnBuffer.room,		$8a
-	.db <wDeathRespawnBuffer.y,		$38
-	.db <wDeathRespawnBuffer.x,		$48
-	.db <wDeathRespawnBuffer.facingDir,	$00
+	.db <wDeathRespawnBuffer.room,		$71
+	.db <wDeathRespawnBuffer.y,		$85
+	.db <wDeathRespawnBuffer.x,		$75
+	.db <wDeathRespawnBuffer.facingDir,	$02
+
+	.db <wSwordLevel,			$01
+	.db <wInventoryStorage,			ITEM_SWORD
+	.db <wObtainedTreasureFlags,		(1<<TREASURE_SWORD)
 
 	.db <wJabuWaterLevel,			$21
 	.db <wPortalGroup,			$ff
