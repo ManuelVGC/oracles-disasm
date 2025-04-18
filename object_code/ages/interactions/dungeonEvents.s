@@ -44,7 +44,7 @@ verifyTilesAndDropSmallKey:
 	jp spawnSmallKeyFromCeiling
 
 subid01_tileData:
-	.db TILEINDEX_YELLOW_TOGGLE_FLOOR  $67 $77 $ff ; Tiles at $67 and $77 must be red
+	.db TILEINDEX_YELLOW_TOGGLE_FLOOR  $67 $77 $ff ; Tiles at $67 and $77 must be yellow
 	.db TILEINDEX_BLUE_TOGGLE_FLOOR    $68 $78 $00 ; Tiles at $68 and $78 must be blue
 
 
@@ -166,21 +166,35 @@ interaction21_subid19:
 ; Toggle a bit in wSwitchState based on whether a toggleable floor tile at position Y is
 ; blue. The bitmask to use is X.
 interaction21_subid07:
+
+	;Mirar si algún tile en la misma Y que la interacción es una baldosa de color.
 	ld e,Interaction.yh
 	ld a,(de)
 	ld c,a
 	ld b,>wRoomLayout
-	ld a,(bc)
+
+	;se mira la fila c en el RoomLayout que es algo como:
+	;wRoomLayout = [
+		;$00, $00, $0B, $0B, $0B, $00, $00, $00,  ; primera fila de tiles
+		;$00, $00, $00, $00, $00, $00, $00, $00,
+		; ...
+		;$00, $00, $0D, $0C, $0B, $00, $00, $00,  ; fila 10: baldosas toggleables
+		;...
+	;]
+	ld a,(bc) 
 	sub TILEINDEX_RED_TOGGLE_FLOOR
 	cp $03
-	ret nc
+	ret nc ;si no es tile de toggle floor, la función sale
 
+	; si es un tile de toggle floor, si es o rojo o amarillo se salta a unsetSwitch, sino, si es azul vaya, se sigue a setSwitch
 	ld a,(bc)
 	cp TILEINDEX_RED_TOGGLE_FLOOR
 	jr z,unsetSwitch
 	cp TILEINDEX_YELLOW_TOGGLE_FLOOR
 	jr z,unsetSwitch
 
+; pone a 1 un bit (indicado por el bitmask Interaction.xh) del switchState usando el OR. Ejemplo: wSwitchState = %00000000  (todos los bits apagados)
+; bitmask      = %00000100  (bit 2 encendido) --> wSwitchState OR bitmask → %00000000 OR %00000100 = %00000100
 setSwitch:
 	ld e,Interaction.xh
 	ld a,(de)
@@ -192,7 +206,7 @@ setSwitch:
 unsetSwitch:
 	ld e,Interaction.xh
 	ld a,(de)
-	cpl
+	cpl ;invierte el bitmask, desactivando ese bit en vez de activándolo, haciendo lo contrario de setSwitch.
 	ld hl,wSwitchState
 	and (hl)
 	ld (hl),a
