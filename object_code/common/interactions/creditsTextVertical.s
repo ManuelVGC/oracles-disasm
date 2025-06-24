@@ -11,7 +11,7 @@ interactionCodeaf:
 	.dw @state0
 	.dw @state1
 
-;si el subid = 0 (es el padre) se carga la coordenada Y correspondiente y se almacena en var30 (se usará como contador). Además se establece una
+;si el subid = 0 (es el padre) se carga el valor de data_66bc correspondiente y se almacena en var30 (se usará como contador). Además se establece una
 ;velocidad de desplazamiento.
 ;si subid = 1 (es un hijo) directamente se salta a establecer la velocidad de desplazamiento.
 @state0:
@@ -47,7 +47,9 @@ interactionCodeaf:
 	call decHlRef16WithCap ;se reduce el valor de var30 hasta que llega a 0
 	ret nz
 
-	call @spawnChild ;cuando el contador llega a 0 spawnea un objeto hijo
+	call @spawnChild ;cuando el contador llega a 0 spawnea un objeto hijo. Se ejecuta 17 veces, una por cada línea de data_66bc porque este state1 se ejecuta
+	; siempre que el data_66bc sea != ff, cuando es ff, al usar inc a abajo, entonces da 0 así que retorna ya.
+	;Efectivamente son 17 veces porque coincide con el número de textos del data_4556.s.
 	ld e,Interaction.var30 ;e = byte bajo de var30, véase si por ejemplo fuese la primera línea de data_66bc sería 0x20
 	ld a,(de) ;carga en a el valor de var30 (d = 0x00 de antes). Si por ejemplo var30 fuese la primera línea de data_66bc, a aquí sería 0x0020
 	inc a ;incrementa a
@@ -71,7 +73,7 @@ interactionCodeaf:
 	ld (hl),INTERAC_CREDITS_TEXT_VERTICAL ;se carga esta misma interacción
 	inc l ;apunta al subid del hijo
 	ld (hl),$01 ; [child.subid] = 1. Se carga esta interacción pero con el subID1.
-	inc l
+	inc l ;pasa a apuntar a var03. Mira structs.s, después del subid va el var03.
 	ld e,Interaction.counter1
 	ld a,(de)
 	ld (hl),a ; [child.var03] Carga counter1 en var03 del hijo
@@ -115,8 +117,9 @@ interactionCodeaf:
 	ld c,(hl) ; [xh]
 	jp interactionFunc_3e6d ;de aquí es de donde se saca el texto a mostrar
 
-; esta tabla almacena coordenadas Y para la posición de cada línea de los créditos. Los valores indican dónde comienza el texto en pantalla. $ff indica
-; el final de la tabla.
+; Esta tabla se usa para separar X tiempo (0020, 00e0, etc) las líneas de los créditos. Es decir, 0020 sería tiempo hasta que sale el primer texto de los créditos,
+; 00e0 tiempo entre el primer y segundo texto, y así.
+; $ff indica el final de la tabla.
 @data_66bc:
 .ifdef ROM_AGES
 

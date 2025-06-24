@@ -27,8 +27,16 @@ data_4556:
 
 ;Primer byte: Posición vertical (Y).
 ;Segundo byte: Posición horizontal (X).
-;Tercer byte: Código de letra (incrementos de 2, empezando en $00 para la "A").
+;Tercer byte: Código de letra (para los nombres en los créditos se usa el archivo spr_credits_font.png y la letra se indica con incrementos de 2 EN HEXADECIMAL,
+; empezando en $00 para la "A").
 ;Cuarto byte: Paleta de colores (00 para blanco, 01 para azul).
+
+; Códigos de letra para los nombres de los créditos:
+; a = 00, b = 02, c = 04 , d = 06, e = 08, f = a , g = c, h = e, i = 10, j = 12 , k = 14, l = 16, m = 18, n = 1a, o = 1c, p = 1e, q = 20, r = 22
+; s = 24, t = 26, u = 28, v = 2a, w = 2c, x = 2e, y = 30, z = 32, . = 34, punto alto = 36 , - = 38, ~ = 3a.
+
+; Para las letras pequeñas es seguir sumando 2 en hexadecimal pero con saltos entre medias. Por ejemplo, 3c y 3e no existen, pero 40 ya salta a spr_credits_sprites_1.png
+; así que empiezas desde ahí sumando 2 y sale SCENIHART.....
 
 data_4556_0:
 	.db $10
