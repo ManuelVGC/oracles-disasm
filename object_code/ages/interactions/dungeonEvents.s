@@ -49,6 +49,7 @@ subid01_tileData:
 
 
 ; D2: Verify a floor tile is red to open a door
+; Si el tile en la posición 5a es un tile de tipo toggle floor rojo entonces pone wActiveTriggers a 1.
 interaction21_subid02:
 	ld a,(wRoomLayout+$5a)
 	cp TILEINDEX_RED_TOGGLE_FLOOR
@@ -66,12 +67,12 @@ interaction21_subid03:
 	jr nz,@initialized
 
 	call interactionIncState
-	call objectGetTileAtPosition
-	ld a,(wRotatingCubePos)
+	call objectGetTileAtPosition ;devuelve en a el tile en la posición de la interacción y en hl dónde está en el wRoomLayout
+	ld a,(wRotatingCubePos) ;guarda en a la posición del rotating cube
 	ld e,Interaction.var03
-	ld (de),a
+	ld (de),a ; pone el var03 de la interacción a wRotatingCubPos
 	cp l
-	call z,@lightCubeTorches
+	call z,@lightCubeTorches ; si la posición de la interacción (l) es la misma que la del cubo, enciende la antorcha
 
 @initialized:
 	ld e,Interaction.var03
@@ -79,56 +80,62 @@ interaction21_subid03:
 	ld b,a
 	ld a,(wRotatingCubePos)
 	cp b
-	ret z
+	ret z ;si la posición no ha cambiado, sale.
 
 	call objectGetTileAtPosition
 	ld a,(wRotatingCubePos)
 	cp l
-	call z,@lightCubeTorches
+	call z,@lightCubeTorches ;si la posición del cubo es la misma que la de la interacción entonces enciende la llama
 	ld a,(wRotatingCubePos)
 	ld e,Interaction.var03
-	ld (de),a
+	ld (de),a ;pone en var03 de la interacción la posición del cubo
 	ret
 
 @lightCubeTorches:
-	ld hl,wRotatingCubeColor
-	set 7,(hl)
+	ld hl,wRotatingCubeColor ;este wRotatingCubeColor viene efectivamente determinado por el color del cubo, que se settea en coloredCube.s.
+	set 7,(hl) ;pone en 1 el bit 7 de wRotatingCubeColor para hacer visible la llama
 	ld a,SND_LIGHTTORCH
 	jp playSound
 
 
 ; d2: Set torch color based on the color of the tile at this position.
+; Actualiza wRotatingCubeColor con el tile donde está la interacción
 interaction21_subid04:
 	call checkInteractionState
-	jr nz,@initialized
+	jr nz,@initialized ; si state != 0, ya ha sido inicializada entonces salta a @initialized
 
 	call interactionIncState
-	call objectGetTileAtPosition
-	ld e,Interaction.var03
-	ld (de),a
-	sub TILEINDEX_RED_TOGGLE_FLOOR
-	set 7,a
-	ld (wRotatingCubeColor),a
+	call objectGetTileAtPosition ; esta función devuelve el tile en el que está la interacción en la variable a
+	ld e,Interaction.var03 ; guarda en e el offset donde se encuentra var03. Básicamente hace un ld e, $03 (este 03 se saca de structs.s).
+	ld (de),a ; d apunta a la interacción actual (esto funciona así porque funciona así en el motor), en este caso la 21 y e apunta a var03.
+	; Por tanto aquí lo que hace es guardar en el var03 de la interacción 21 el valor de a, que es el tile en el que está la interacción
+	sub TILEINDEX_RED_TOGGLE_FLOOR ;resta al tile donde está la interacción el código del tile tipo toggle floor rojo. Si el resultado es 0, 1 o 2, es que entonces
+	; el tile en el que está la interacción es un tile de tipo toggle floor.
+	set 7,a ; pone el bit 7 a 1. Te quedaría algo como que el resultado será 0x80 (0 si fuese rojo el tile en el que está la interacción y 8 por activar el bit 7).
+	; esto se hace porque poner el bit a 7 de wRotatingCubeColor hace que la llama sea visible.
+	ld (wRotatingCubeColor),a ;se guarda ese valor en wRotatingCubeColor
 	ld a,$57
-	ld (wRotatingCubePos),a
+	ld (wRotatingCubePos),a ;guarda en wRotatingCubePos la posición donde está la interacción. Da igual un poco el valor porque simplemente se usa para comprobar
+	; que no sea 0 en coloredCubeFlame.s. Si != 0 es que la interacción21 subid04 ha cambiado wRotatingCubePos y por tanto existe.
 
 @initialized:
 	call objectGetTileAtPosition
-	ld b,a
+	ld b,a ;guarda el b el tile actual donde está la interacción
 	sub TILEINDEX_RED_TOGGLE_FLOOR
-	cp $03
-	ret nc
+	cp $03 
+	ret nc ; si el resultado del código del tile actual menos el código del tile toggle floor rojo es 3 o más, sale, porque entonces es que el tile actual no es
+	; un tile de tipo toggle floor
 
 	ld e,Interaction.var03
-	ld a,(de)
-	cp b
-	ret z
+	ld a,(de) ;guarda el valor de var03 en a, es decir, el valor que teníamos antes, que es el tile en el que estaba la interacción
+	cp b 
+	ret z ;comparas con b y si son igual el cp da zero así que sale, si ha cambiado sigue
 
 	ld a,b
-	ld (de),a
+	ld (de),a ;se guarda en el var03 el tile nuevo
 	sub TILEINDEX_RED_TOGGLE_FLOOR
-	set 7,a
-	ld (wRotatingCubeColor),a
+	set 7,a ;activa el bit 7
+	ld (wRotatingCubeColor),a ;guarda el resultado en wRotatingCubeColor
 	ret
 
 
@@ -144,22 +151,22 @@ interaction21_subid05:
 	.db TILEINDEX_BLUE_PUSHABLE_BLOCK    $4a $59 $5b $6a $00
 
 
-; d2: Set trigger 0 when the colored flames are lit red.
+; d2: Set trigger 1 when the colored flames are lit red.
 interaction21_subid06:
-	ld b,$80
+	ld b,$80 ;$80 es el código de color para el rojo
 	jr ++
 
-; d1: Set trigger 0 when the colored flames are lit blue.
+; d1: Set trigger 1 when the colored flames are lit blue.
 interaction21_subid19:
 	ld b,$82
 ++
 	ld a,(wRotatingCubeColor)
-	cp b
-	ld a,$01
-	jr z,+
-	dec a
+	cp b ;compara el color de la llama con el código del color rojo
+	ld a,$01 ;si son iguales, pone a = 1.
+	jr z,+ ;si son iguales se salta a +
+	dec a ;si no son iguales resta 1 a a.
 +
-	ld (wActiveTriggers),a
+	ld (wActiveTriggers),a ;activa el wActiveTriggers
 	ret
 
 
@@ -169,21 +176,21 @@ interaction21_subid07:
 
 	;Mirar si algún tile en la misma Y que la interacción es una baldosa de color.
 	ld e,Interaction.yh
-	ld a,(de)
+	ld a,(de) ; a será igual a la Y de la interacción
 	ld c,a
 	ld b,>wRoomLayout
 
 	;se mira la fila c en el RoomLayout que es algo como:
 	;wRoomLayout = [
-		;$00, $00, $0B, $0B, $0B, $00, $00, $00,  ; primera fila de tiles
+		;$00, $00, $0B, $0B, $0B, $00, $00, $00,  ; primera fila de tiles. Cada dígito es un tile index.
 		;$00, $00, $00, $00, $00, $00, $00, $00,
 		; ...
-		;$00, $00, $0D, $0C, $0B, $00, $00, $00,  ; fila 10: baldosas toggleables
+		;$00, $00, $0D, $0C, $0B, $00, $00, $00,  
 		;...
 	;]
-	ld a,(bc) 
+	ld a,(bc) ; a apunta a la fila de tiles donde está la interacción
 	sub TILEINDEX_RED_TOGGLE_FLOOR
-	cp $03
+	cp $03 ;mira si hay algún tile de tipo toggle floor
 	ret nc ;si no es tile de toggle floor, la función sale
 
 	; si es un tile de toggle floor, si es o rojo o amarillo se salta a unsetSwitch, sino, si es azul vaya, se sigue a setSwitch
