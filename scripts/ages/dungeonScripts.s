@@ -241,17 +241,17 @@ herosCaveScript_spawnNorthStairsWhenEnemiesKilled:
 	scriptend
 
 
-
+; cuando se rompe el cristal suena un sonido, se agita la pantalla, se muestra un texto, se activa el bit 6 de los flags de la sala y se pasa al siguiente state.
 moonlitGrottoScript_brokeCrystal:
 	disableinput
 	wait 30
-	playsound SNDCTRL_STOPSFX
+	playsound SNDCTRL_STOPSFX ;detiene cualquier efecto de sonido que estuviese sonando
 	shakescreen 180
 	playsound SND_RUMBLE2
 	wait 180
 	showtext TX_1200
-	orroomflag $40
-	setstate $ff
+	orroomflag $40 ;activa el bit 6 de los flags de la sala
+	setstate $ff ;indica que termine el script. Indica que pasa a su siguiente state.
 
 moonlitGrottoScript_brokeAllCrystals:
 	wait 30
@@ -261,7 +261,7 @@ moonlitGrottoScript_brokeAllCrystals:
 	playsound SND_SOLVEPUZZLE
 	wait 30
 	showtext TX_1201
-	setglobalflag GLOBALFLAG_D3_CRYSTALS
+	setglobalflag GLOBALFLAG_D3_CRYSTALS ;marca el flag global que indica que se han roto todos los cristales
 	enableinput
 	asm15 scriptHelp.moonlitGrotto_enableControlAfterBreakingCrystal
 	scriptend

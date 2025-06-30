@@ -5286,12 +5286,13 @@ readByteFromW7TextTableBank:
 
 ;;
 getThisRoomFlags:
-	ld a,(wActiveRoom)
+	ld a,(wActiveRoom) ;carga en a la room actual
 getARoomFlags:
-	push bc
-	ld b,a
-	ld a,(wActiveGroup)
-	call getRoomFlags
+	push bc ;guarda bc en pila
+	ld b,a ;carga en b la room actual
+	ld a,(wActiveGroup) ;carga en a el grupo actual
+	call getRoomFlags ; consigue a = flags de la room y hl = dirección del byte que indica los flags, es decir, hl será la dirección y a el contenido de esa
+	; dirección. hl será un byte que tiene una parte alta h (el grupo) y una parte baja, el offset dentro del grupo, la l, que indica la room.
 	pop bc
 	ret
 
@@ -5299,7 +5300,7 @@ getARoomFlags:
 ; @param	a	Group
 ; @param	b	Room
 ; @param[out]	a	Room flags
-; @param[out]	hl	Address of room flags
+; @param[out]	hl	Address of room flags.
 getRoomFlags:
 	ld hl, flagLocationGroupTable
 	rst_addAToHl

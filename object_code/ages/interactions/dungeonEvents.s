@@ -233,14 +233,15 @@ interaction21_subid08:
 	jr unsetSwitch
 
 
-; d3: Drop a small key when 3 blocks have been pushed.
+; d3: Drop a small key when 3 blocks have been pushed (to a certain location).
 interaction21_subid09:
-	call interactionDeleteAndRetIfItemFlagSet
+	call interactionDeleteAndRetIfItemFlagSet ;borra la interacción en caso de que ya se haya activado la llave
 	ld hl,@tileData
-	jp verifyTilesAndDropSmallKey
+	jp verifyTilesAndDropSmallKey ;mira si los tiles de tileData son pushable blocks, es decir, que has movido ahí los pushable blocks, y en ese caso aparece
+	; una llave
 
 @tileData:
-	.db TILEINDEX_PUSHABLE_BLOCK $3b $59 $5d $00
+	.db TILEINDEX_PUSHABLE_BLOCK $3b $59 $5d $00 
 
 
 ; d3: When an orb is hit, spawn an armos, as well as interaction which will spawn a chest
@@ -337,60 +338,69 @@ interaction21_subid0d:
 	.dw interactionRunScript
 	.dw @state3
 
+; si ya se ha resuelto el puzzle de los cristales o si ya se ha roto el cristal de la sala, se borra esta interacción
 @state0:
-	ld a,GLOBALFLAG_D3_CRYSTALS
+	ld a,GLOBALFLAG_D3_CRYSTALS ;flag que indica si ya se ha resuelto el puzzle de los cristales
 	call checkGlobalFlag
-	jp nz,interactionDelete
+	jp nz,interactionDelete ;en caso de que el puzzle ya esté resuelto se borra esta interacción, ya no hace falta
 	call getThisRoomFlags
-	and $40
-	jp nz,interactionDelete
+	and $40 ;comprueba el bit 6 de los flags de la sala, que indica si se ha roto el cristal
+	jp nz,interactionDelete ;si se ha roto el cristal, la interacción ya no hace falta, se borra
 
-	ld a,(wSwitchState)
+	ld a,(wSwitchState) ;Ojo, el wSwitchState es distinto de los flags de la sala. El partGrottoCrystal cambia el wSwitchState, este evento subid0d cambia
+	; un bit de los flags de la sala.
 	ld e,Interaction.counter2
-	ld (de),a
-	jp interactionIncState
+	ld (de),a ;se guarda en counter2 el valor de wSwitchState
+	jp interactionIncState ;se incrementa el state para que en el siguiente frame se ejecute ya state1
 
+; comprueba si cambia el wSwitchState (se rompe el cristal) y si es así muestra un texto, agita la pantalla y activa el bit 6 de la sala
 @state1:
-	ld a,(wSwitchState)
-	ld b,a
-	ld e,Interaction.counter2
-	ld a,(de)
-	cp b
-	ret z
+	ld a,(wSwitchState) ;carga el wSwitchState actual en a. 
+	ld b,a ;lo pasa a b
+	ld e,Interaction.counter2 ;carga el wSwitchState anterior en e
+	ld a,(de) ;lo pasa a a 
+	cp b ;compara a con b
+	ret z ;comprueba si el wSwitchState anterior es igual al wSwitchState actual. Si sigue igual sale con ret así que se queda haciendo este bucle hasta que se
+	; rompa.
 
+	;cuando se haya roto el cristal sigue el código
 	ld a,(wLinkDeathTrigger)
 	or a
-	ret nz
+	ret nz ;si Link está muriendo, sale.
 
+	;se disablean todos los controles del jugador
 	inc a
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 	ld (wDisableScreenTransitions),a
 	ld (wDisableWarpTiles),a
 
-	ld hl,mainScripts.moonlitGrottoScript_brokeCrystal
+	ld hl,mainScripts.moonlitGrottoScript_brokeCrystal ;animación de shake de la pantalla, muestra texto de cristal roto y activa el bit 6 de los flags de la sala.
 	call interactionSetScript
-	call interactionRunScript
-	jp interactionIncState
+	call interactionRunScript 
+	jp interactionIncState ;entra en state2, que sigue ejecutando el script de moonlitGrottoScript_brokeCrystal. 
 
+; si todos los cristales se han roto, se hace una animación con sonidos, se muestra un texto y cambia el valor de wSpinnerState a 0.
+; estos bits de wSwitchState los cambia a 1 el handler de la primera mazmorra (subid18) cuando se van poniendo a 1 el bit 6 de las salas donde hay cristales.
 @state3:
 	ld a,(wSwitchState)
 	and $f0
-	cp $f0
-	jr nz,@enableControl
+	cp $f0 ;comprueba todos los bits altos de wSwitchState (f0 = 11110000). Si todos están a 1 significa que todos los cristales se han roto
+	jr nz,@enableControl ;si aún no se han roto todos los cristales, le devuelve el control al jugador
 
+	;si todos los cristales se han roto sigue el código
 	ld a,$02
 	ld (wScreenShakeMagnitude),a
 
-	ld hl,mainScripts.moonlitGrottoScript_brokeAllCrystals
+	ld hl,mainScripts.moonlitGrottoScript_brokeAllCrystals ;marca el flag global que indica que se han roto todos los cristales y hace ciertas animaciones y sonidos
 	call interactionSetScript
 
 	ld e,Interaction.state
 	ld a,$02
-	ld (de),a
+	ld (de),a ;cambia el state a 02, es decir, ejecuta el script que se ha setteado anteriormente
 
 	xor a
-	ld (wSpinnerState),a
+	ld (wSpinnerState),a ;cambia el valor de wSpinnerState a 0
 	ret
 
 @enableControl:
@@ -651,33 +661,38 @@ interaction21_subid17:
 
 
 ; d3: Calculate the value for [wSwitchState] based on which crystals are broken.
+; Comprueba el bit 6 de cada sala donde hay un cristal y modifica los bits correspondientes de wSwitchState para que el subid0d haga algo cuando todos esos bits
+; están activados.
 interaction21_subid18:
-	call getThisRoomFlags
+	call getThisRoomFlags ;hl apunta a los flags de la sala actual
 	ld b,$00
 
-	ld l,<ROOM_AGES_45d
-	bit 6,(hl)
-	jr z,+
-	set 4,b
+	ld l,<ROOM_AGES_45d ;dentro del grupo h de salas que sacas con getThisRoomFlags, apunta a la sala 45d.
+	; ROOM_AGES_45d es un identificador del grupo y sala esa concreta, pero no su dirección. Al hacer que l = <ROOM_AGES_45d se hace que se coja el identificador
+	; de la sala (el byte bajo) y lo use como offset dentro del grupo al que apuntaba h.
+	bit 6,(hl) ;comprueba si el bit 6 de el flag de esa sala está activo (cristal roto)
+	jr z,+ ;sino, salta
+	set 4,b ;si está roto activamos el bit 4 en b.
 +
 	ld l,<ROOM_AGES_45f
 	bit 6,(hl)
 	jr z,+
-	set 5,b
+	set 5,b ;si está roto activamos el bit 5 en b
 +
 	ld l,<ROOM_AGES_461
 	bit 6,(hl)
 	jr z,+
-	set 6,b
+	set 6,b ;si está roto activamos el bit 6 en b
 +
 	ld l,<ROOM_AGES_463
 	bit 6,(hl)
 	jr z,+
-	set 7,b
+	set 7,b ;si está roto activamos el bit 7 en b
 +
-	ld a,(wSwitchState)
-	or b
-	ld (wSwitchState),a
+	ld a,(wSwitchState) ;hace a = wSwitchState
+	or b ;hace un or sobre él con b, que tenía marcados los bits que indican qué cristales se han roto, activando esos bits de a y manteniendo los bits que estaban
+	; ya activados antes (1 OR 0 da 1)
+	ld (wSwitchState),a ;vuelve a guardar en wSwitchState el valor de a, con los bits que indican los cristales rotos ya modificados.
 	jp interactionDelete
 
 

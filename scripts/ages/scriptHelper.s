@@ -78,9 +78,9 @@ ancientTomb_startWallRetractionCutscene:
 	ld (wCutsceneTrigger),a
 	jp resetLinkInvincibility
 
-;;
+;; Devuelve el control al jugador
 moonlitGrotto_enableControlAfterBreakingCrystal:
-	xor a
+	xor a ;pone a a 0
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 label_15_031:
