@@ -125,9 +125,15 @@ objectData77d4:
 	obj_Interaction $1e $06 $a3 $00
 	obj_End
 
+;tabla que define ciertos elementos.
 moonlitGrotto_onArmosSwitchPressed:
-	obj_Interaction $12 $01 $58 $58
-	obj_SpecificEnemyA $00 $1d $00 $26 $a0
+	obj_Interaction $12 $01 $58 $58 ;interacción dungeon stuff (id 12) con subid01. Esta interacción crea una llave cuando el número de enemigos es 0.
+	;$58 $58 es la posición en la sala.
+	obj_SpecificEnemyA $00 $1d $00 $26 $a0 ;genera el specificEnemyA Armos (1d). Este enemigo spawnea armos en todos los tiles del index que le especifiques.
+	;la sintaxis es flags, parece que omisible, además que 00 parece ser sin flags especiales ;id del enemigo; subid; Y, tile index a reemplazar; X, tile
+	; index que reemplaza a ese tileindex (por ejemplo con las estatuas se quita el tile index de las estatuas, se pone un suelo normal y encima de ese suelo
+	;se spawnea el enemigo estatua).
+	;El subid 00 hace que las estatuas sean rojas y se activen cuando cca2 sea distinto de 0.
 	obj_End
 
 impaOctoroks:

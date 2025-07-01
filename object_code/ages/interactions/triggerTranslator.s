@@ -43,22 +43,26 @@ interactionCode24:
 	ld c,a
 	jr @label_08_081
 
-; Subid 2: check that [wNumLitTorches] == Y.
+; Subid 2: check that [wNumLitTorches] == Y y activa un bit en wActiveTriggers
 @subid2:
 	ld e,Interaction.yh
 	ld a,(de)
-	ld b,a
+	ld b,a ; b = Y de la interacción
+
 	ld e,Interaction.xh
 	ld a,(de)
-	ld c,a
+	ld c,a ; c = X de la interacción
+
 	ld a,(wNumTorchesLit)
-	cp b
-	jr nz,++
+	cp b ;devuelve z si a = b 
+	jr nz,++ ;si el número de antorchas encendidas es Y entonces sigue el código, sino, salta a ++
+
 	ld a,(wActiveTriggers)
-	or c
+	or c ;activa un bit en wActiveTriggers
 	ld (wActiveTriggers),a
 	ret
 ++
+	;si hay alguna antorcha apagada desactiva el bit c de wActiveTriggers
 	ld a,c
 	cpl
 	ld c,a

@@ -319,13 +319,16 @@ interaction21_subid0b:
 
 ; d3: 4 armos spawn when trigger 0 is activated.
 interaction21_subid0c:
-	ld a,(wActiveTriggers)
+	ld a,(wActiveTriggers) ;se carga wActiveTriggers en a
 	or a
-	ret z
-	ld ($cca2),a
-	ld hl,objectData.moonlitGrotto_onArmosSwitchPressed
-	call parseGivenObjectData
-	jp interactionDelete
+	ret z ;si no hay ningún trigger activo sale sin hacer nada.
+
+	;si hay algún bit de wActiveTriggers activo sigue el código
+	ld ($cca2),a ;carga wActiveTriggers en $cca2 (cca2 es una variable temporal)
+	ld hl,objectData.moonlitGrotto_onArmosSwitchPressed ;tabla que define la interacción dungeon stuff 00 (spawnea llave cuando numEnemigos = 0)
+	; y el enemigo estatua, que se encargará de spawnear 4 estatuas
+	call parseGivenObjectData ;lee una tabla y crea los objetos definidos en ella, en este caso la tabla de moonlitGrotto_onArmosSwitchPressed
+	jp interactionDelete ;se borra la interacción al terminar su función
 
 
 ; d3: Crystal breakage handler
@@ -410,11 +413,11 @@ interaction21_subid0d:
 ; d3: Small key falls when a block is pushed into place
 interaction21_subid0e:
 	call interactionDeleteAndRetIfItemFlagSet
-	ld hl,wRoomLayout+$4a
+	ld hl,wRoomLayout+$4a ;carga en hl el tile concreto que va a querer comprobar
 	ld a,(hl)
-	cp $2a
+	cp $2a ;comprueba si el tile index de esa posición $4a de la sala es el $2a, es decir, una estatua verde.
 	ret nz
-	jp spawnSmallKeyFromCeiling
+	jp spawnSmallKeyFromCeiling ;en caso de que lo sea spawnea una llave
 
 
 ; d4: A door opens when a certain floor pattern is achieved
