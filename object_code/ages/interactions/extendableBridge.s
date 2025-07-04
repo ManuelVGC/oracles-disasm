@@ -5,42 +5,48 @@ interactionCode23:
 	ld e,Interaction.state
 	ld a,(de)
 	rst_jumpTable
-	.dw @state0
-	.dw @state1
-	.dw @state2
+	.dw @state0 ;inicialización
+	.dw @state1 ;espera a que el bit de wSwitchState cambie para crear el puente
+	.dw @state2 ;espera a que el bit de wSwitchState cambie para eliminar el puente
 
+; usa el subid para indicar el bit que nos importa de wSwitchState. Checkea si el tile donde está la interacción es un tile de puente y si lo es pasa a state2 y si no
+; pasa a state1.
 @state0:
 	ld e,Interaction.subid
 	ld a,(de)
-	ld b,a
-	and $07
+	ld b,a ; b = subid
+	and $07 ;se queda con los últimos tres bits
 	ld hl,bitTable
-	add l
-	ld l,a
-	ld a,(hl)
+	add l ;sumas a a l
+	ld l,a ;y apuntas al elemento de bitTable especificado por el subid. La tabla tiene 8 entradas, con cada una un bit activado distinto (0000 0001, 0000 0010, ...)
+	ld a,(hl) ;cargas el bitmask correspondiente en a. 
 	inc e
-	ld (de),a ; [var03] = bitmask corresponding to [subid]
+	ld (de),a ; [var03] = bitmask corresponding to [subid].
+	;el bit que se usa como comprobador se especifica con el subid
 
 	; Check whether the tile here is a bridge; go to state 2 if so, state 1 otherwise
 	ld e,Interaction.yh
-	ld a,(de)
-	ld c,a
+	ld a,(de) 
+	ld c,a ; c = Y de la interacción
 	ld b,>wRoomLayout
-	ld a,(bc)
+
+	ld a,(bc) ;checkea si el tile que está en Y es un tile de puente
 	sub TILEINDEX_VERTICAL_BRIDGE
 	sub $06
-	ld a,$02
-	jr c,+
-	dec a
+
+	ld a,$02 ;asumimos que el tile es un tile de puente así que a = 2.
+	jr c,+ ; si el tile era efectivamente de puente salta a +
+	dec a ;sino era puente a = 1.
 +
 	ld e,Interaction.state
-	ld (de),a
+	ld (de),a ;se cambia al state determinado por a
 	ld e,Interaction.var30
 	ld a,(wSwitchState)
-	ld (de),a
+	ld (de),a ;var30 = wSwitchState
 	ret
 
-; State 1: waiting for switch to toggle to create bridge
+; State 1: waiting for switch to toggle to create bridge.
+; Crea tileindex de puente en los tiles indicados en la tabla bridgeCreationData, a la cual apuntamos a una de las filas con la X de la interacción.
 @state1:
 	ld e,Interaction.substate
 	ld a,(de)
@@ -50,38 +56,43 @@ interactionCode23:
 
 @state1Substate0:
 	call @checkSwitchStateChanged
-	ret z
-	ld hl,@bridgeCreationData
+	ret z ; si el bit que nos importa de wSwitchState no ha cambiado, sale.
+	ld hl,@bridgeCreationData 
 
+; lee los tiles que se deberán modificar dependiendo de la X de la interacción y apunta al primero. Además, settea un contador para que no se creen todos de golpe y un valor
+; que indica porque posición de la lista de tiles vamos leyendo
 @startLoadingBridgeData:
 	ld e,Interaction.var30
 	ld a,(wSwitchState)
-	ld (de),a
+	ld (de),a ; var30 = wSwitchState. Guarda el nuevo estado del wSwitchState para comparar luego si vuelve a cambiar o no.
 
 	ld e,Interaction.xh
 	ld a,(de)
-	rst_addDoubleIndex
+	rst_addDoubleIndex ;dependiendo de la X de la interacción elige una de las listas de tiles de creación del puente
 	ldi a,(hl)
 	ld h,(hl)
 	ld l,a
 
 	ldi a,(hl)
-	ld e,Interaction.var31
-	ld (de),a
-	ld e,Interaction.relatedObj2
+	ld e,Interaction.var31 
+	ld (de),a ;se lee el primer tile de la lista y se guarda en var31
+	ld e,Interaction.relatedObj2 ;relatedObj2 se usa para guardar la dirección actual en la lista de tiles que estamos leyendo.
 	ld a,l
 	ld (de),a
 	inc e
 	ld a,h
 	ld (de),a
+
+	;se usa un contador para que los tiles vayan apareciendo poco a poco y no todos de golpe
 	ld a,$0a
 	ld e,Interaction.counter1
 	ld (de),a
 	jp interactionIncSubstate
 
+; se van creando los tiles del puente en los tiles indicados en la tabla
 @state1Substate1:
 	call interactionDecCounter1
-	ret nz
+	ret nz 
 	ld (hl),$0a
 	call @updateNextTile
 	ld a,c
@@ -99,7 +110,8 @@ interactionCode23:
 	ld (hl),$00
 	ret
 
-; State 2: waiting for switch to toggle to remove bridge
+; State 2: waiting for switch to toggle to remove bridge.
+; Igual que el state1 pero borra los tiles indicados en la posición de la tabla que indicas con la X de la interacción.
 @state2:
 	ld e,Interaction.substate
 	ld a,(de)
@@ -109,8 +121,8 @@ interactionCode23:
 
 @state2Substate0:
 	call @checkSwitchStateChanged
-	ret z
-	ld hl,@bridgeRemovalData
+	ret z 
+	ld hl,@bridgeRemovalData 
 	jr @startLoadingBridgeData
 
 @state2Substate1:
@@ -138,16 +150,18 @@ interactionCode23:
 
 ;;
 ; @param[out]	zflag	nz if the switch has been toggled
+; Devuelve 0 en caso de que el bit que nos importa del wSwitchState no haya cambiado. Es decir, Z = 1 si no ha cambiado el bit que nos interesa en wSwitchState.
 @checkSwitchStateChanged:
 	ld a,(wSwitchState)
-	ld b,a
+	ld b,a ;b = wSwitchState
 	ld e,Interaction.var30
-	ld a,(de)
-	xor b
-	ld b,a
-	ld e,Interaction.var03
-	ld a,(de)
-	and b
+	ld a,(de) ; a = var30
+	xor b ; a = a xor b, que tendrá en 1 los bits que hayan cambiado
+	ld b,a ; b = a xor b
+	ld e,Interaction.var03 
+	ld a,(de) ; a = bitmask
+	and b ; a and b = 0 si el bit de la bitmask que nos importa no ha cambiado (1 el bit del resultado del XOR indica que ha cambiado pero al hacer un AND con
+	; el bitmask, si ese bit no está marcado en el bitmask y por tanto no nos interesa 1 AND 0 = 0).
 	ret
 
 ;;

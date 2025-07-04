@@ -3,7 +3,7 @@ applyRoomSpecificTileChanges:
 	ld a,(wActiveRoom)
 	ld hl,roomTileChangerCodeGroupTable
 	call findRoomSpecificData
-	ret nc
+	ret nc ;si encuentra la sala en la lista salta, sino, sale
 	rst_jumpTable
 	.dw tileReplacement_group5Mapf5 ; $00
 	.dw tileReplacement_group4Map1b ; $01
@@ -335,18 +335,22 @@ tileReplacement_group4Map59:
 tileReplacement_group4Map60:
 	ld a,GLOBALFLAG_D3_CRYSTALS
 	call checkGlobalFlag
-	ret z
+	ret z ;si los cristales no están rotos no hace nada
 
+	;si todos los cristales están rotos, sigue.
 	ld hl,@rect
-	call fillRectInRoomLayout
-	call getThisRoomFlags
-	and ROOMFLAG_ITEM
-	ld a,TILEINDEX_CHEST_OPENED
+	call fillRectInRoomLayout ;rellena la zona definida por el rectángulo con tileindex a0
+
+	call getThisRoomFlags 
+	and ROOMFLAG_ITEM ;comprueba si el cofre de la sala ha sido abierto o no
+	ld a,TILEINDEX_CHEST_OPENED ;si sí, a = tileindex del cofre abierto
 	jr nz,+
-	inc a
+	inc a ;sino, a = tileindex del cofre cerrado
 +
-	ld hl,wRoomLayout + $57
-	ld (hl),a
+	ld hl,wRoomLayout + $57 
+	ld (hl),a ;coloca el tile del cofre en la (5,7), el centro de la sala, vaya
+
+	;coloca tileindex 1d en cuatro sitios distintos en la sala.
 	ld l,$34
 	ld (hl),$1d
 	ld l,$3a
@@ -356,6 +360,8 @@ tileReplacement_group4Map60:
 	ld l,$7a
 	ld (hl),$1d
 	ret
+
+; define un rectángulo de 5x7 de tileindex a0 que empieza su esquina superior izquierda en (3,4)
 @rect:
 	.db $34 $05 $07 $a0
 
@@ -365,12 +371,12 @@ tileReplacement_group4Map60:
 tileReplacement_group4Map52:
 	ld a,GLOBALFLAG_D3_CRYSTALS
 	call checkGlobalFlag
-	ret z
+	ret z ;si todos los cristales aún no se han roto, sale
 
 	; Load the room above instead of this room
 	ld a,$60
 	ld (wLoadingRoom),a
-	callab loadRoomLayout
+	callab loadRoomLayout ;carga directamente la sala de arriba del spinner.
 	ret
 
 ;;

@@ -112,13 +112,15 @@ objectData77b6:
 	obj_Interaction $a9 $01
 	obj_End
 
+; part con id 03 y subid 04 en la posición (7,5). El subid indica el bit de wToggleBlocksState que se usará como comprobación para poner el orbe golpeado o no.
 moonlitGrotto_orb:
 	obj_Part $03 $04 $75
 	obj_End
 
 moonlitGrotto_onOrbActivation:
-	obj_Interaction $12 $02 $68 $98
-	obj_SpecificEnemyA $00 $1d $00 $26 $a0
+	obj_Interaction $12 $02 $68 $98 ;interacción dungeon stuff (id 12) con subid02. Esta interacción crea una cofre cuando el número de enemigos es 0.
+	;$68 $98 es la posición en la sala.
+	obj_SpecificEnemyA $00 $1d $00 $26 $a0 ;igual que en moonlitGrotto_onArmosSwitchPressed.
 	obj_End
 
 objectData77d4:

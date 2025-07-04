@@ -42,7 +42,7 @@ interactiondc_subid07:
 	jp interactionDelete
 
 
-; Replaces a tile at a position with a given value when destroyed
+; Actualiza los flags de la habitación si el tileindex donde está la interacción cambia.
 interactiondc_subid08:
 	call checkInteractionState
 	jr z,@state0
@@ -57,30 +57,31 @@ interactiondc_subid08:
 	ld l,a
 	ld e,Interaction.var03
 	ld a,(de)
-	cp l
-	ret z
+	cp l ;se compara el tileindex actual (l) con el tileindex antiguo (var03) a ver si ha cambiado
+	ret z ;si no ha cambiado se mantiene comparando
 
 	call getThisRoomFlags
 	ld e,Interaction.xh
 	ld a,(de)
-	or (hl)
-	ld (hl),a
+	or (hl) ; a = los flags pero marcando el flag de que la interacción ya ha ocurrido gracias al bitmask X
+	ld (hl),a ; se guardan los flags actualizados
 	jp interactionDelete
 
 @state0:
-	call getThisRoomFlags
+	call getThisRoomFlags ; hl apunta a los flags de la sala actual
 	ld e,Interaction.xh
-	ld a,(de)
-	and (hl)
-	jp nz,interactionDelete
+	ld a,(de) ;a = X de la interacción
+	and (hl) ;usa el X como bitmask y hace un and con los flags
+	jp nz,interactionDelete ;el bit del bitmask estará a 1 y se hace un and para ver si está a 1 también ese bit en los flags. En caso de que por tanto el flag
+	; esté activo ya, se borra la interacción.
 
 	ld e,Interaction.yh
 	ld a,(de)
-	ld c,a
+	ld c,a ; c = Y de la interacción
 	ld b,>wRoomLayout
-	ld a,(bc)
-	ld e,Interaction.var03
-	ld (de),a
+	ld a,(bc) 
+	ld e,Interaction.var03 
+	ld (de),a ;guarda en var03 el tileindex donde está la interacción.
 	jp interactionIncState
 
 

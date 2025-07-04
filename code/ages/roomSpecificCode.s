@@ -1,9 +1,17 @@
 ;;
 runRoomSpecificCode:
 	ld a,(wActiveRoom)
+
+	;usa el grupo de la sala en la subtabla roomSpecificCodeGroupTable. 
 	ld hl, roomSpecificCodeGroupTable
-	call findRoomSpecificData
-	ret nc
+	call findRoomSpecificData ;; se entra con el grupo en la tabla y se salta a la función correspondiente.
+	; Si encuentra el código de la sala en la lista, hace a = índice (el siguiente dígito después del código de la sala) y activa el carry.
+	; Si no lo encuentra, retorna en el ret nc.
+	ret nc 
+
+	; Usa el índice obtenido para entrar en la función correspondiente.
+	; Por ejemplo, la sala 460 (grupo 4, sala 60) entra en roomSpecificCodeGroup4Table y ahí ve que está listada la sala 60. Coge el siguiente dígito y lo usa
+	; como índice, el 1, así que entra en roomSpecificCode1.
 	rst_jumpTable
 	.dw roomSpecificCode0
 	.dw roomSpecificCode1
@@ -32,7 +40,6 @@ roomSpecificCodeGroupTable:
 	.dw roomSpecificCodeGroup6Table
 	.dw roomSpecificCodeGroup7Table
 
-; Format: room index
 
 roomSpecificCodeGroup0Table:
 	.db $93 $00
@@ -73,6 +80,7 @@ roomSpecificCode0:
 	jp clearMemory
 
 ;;
+; Se crea el spinner en la sala del primer piso de MoonlitGrotto cuando los cristales aún no están rotos.
 roomSpecificCode1:
 	ld a, GLOBALFLAG_D3_CRYSTALS
 	call checkGlobalFlag
@@ -89,6 +97,7 @@ roomSpecificCode1:
 	ret
 
 ;;
+; Se crea el spinner en la sala del segundo piso de MoonlitGrotto cuando los cristales ya se han roto y por tanto el spinner "ha caído" de un piso a otro.
 roomSpecificCode2:
 	ld a,GLOBALFLAG_D3_CRYSTALS
 	call checkGlobalFlag

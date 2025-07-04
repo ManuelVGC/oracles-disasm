@@ -2,11 +2,11 @@
 ; PART_ROTATABLE_SEED_THING
 ; ==================================================================================================
 partCode33:
-	ld e,$c2
+	ld e,$c2 ;c2 indica el subid del objeto.
 	ld a,(de)
 	ld b,a
 	and $03
-	ld e,$c4
+	ld e,$c4 ;c4 indica el state
 	rst_jumpTable
 	.dw @subid0
 	.dw @subid1
@@ -43,13 +43,16 @@ partCode33:
 	ld l,$c6
 	ld (hl),a
 @func_6515:
-	ld a,b
+	ld a,b ; a = subid
+
+	; mueve dos veces los bits a la derecha. El carry pasa a ser el anterior bit 1 y el bit 0 actual será el anterior bit 2.
+	rrca 
 	rrca
-	rrca
-	and $03
+
+	and $03 ;se queda solo con los dos últimos bits. Es decir, los anteriores bit 2 y 3.
 	ld e,$c8
-	ld (de),a
-	call @func_6588
+	ld (de),a ;guarda en $c8 ese valor
+	call @func_6588 ;settea una animación
 	call objectMakeTileSolid
 	ld h,$cf
 	ld (hl),$0a
@@ -83,26 +86,29 @@ partCode33:
 	jr @func_64f2
 @@state0:
 	call @subid0_state0
+
+; $d9 y $d8 = parte alta y baja de wToggleBlocksState o wActiveTriggers, dependiendo del bit 4 del subid.
 @func_6551:
 	ld e,$c2
-	ld a,(de)
-	bit 4,a
-	ld hl,wToggleBlocksState
-	jr z,+
+	ld a,(de) ;a = subid
+	bit 4,a ;comprueba bit 4 del subid
+	ld hl,wToggleBlocksState ;hl = wToggleBlocksState
+	jr z,+ ;si bit 4 = 0 entonces salta, sino, hl = wActiveTriggers
 	ld hl,wActiveTriggers
 +
 	ld e,$d8
 	ld a,l
-	ld (de),a
-	inc e
-	ld a,h
-	ld (de),a
+	ld (de),a ;$d8 = parte baja de wToggleBlocksState o de wActiveTriggers
+	inc e ;e = $d9
+	ld a,h 
+	ld (de),a ;$d9 = parte alta de wToggleBlocksState o de wActiveTriggers
 	ret
-	
+
+; rota el objeto dependiendo del valor del bit 0 de wActiveTriggers.
 @subid2:
-	ld a,(de)
-	or a
-	jr z,@subid2_state0
+	ld a,(de) ; a = state
+	or a 
+	jr z,@subid2_state0 ;si el state es 0 salta
 	ld h,d
 	ld l,$f2
 	ld e,l
@@ -147,22 +153,23 @@ partCode33:
 	.db $04 $06
 	.db $04 $04
 
+;utiliza los bits 7 y 6 del subid para decidir dirección de rotación (+ o -) y velocidad (1 o 2).
 @subid2_state0:
-	ld c,b
-	rlc c
-	ld a,$01
-	jr nc,+
-	ld a,$ff
+	ld c,b ; c = subid
+	rlc c ;mueve el bit 7 al carry y el carry pasa al bit 0. 
+	ld a,$01 ;si el carry no está activo ahora (el bit 7 era 0) entonces a = 1
+	jr nc,+  
+	ld a,$ff ;si el carry sí está activo ahora (el bit 7 era 1) entonces a = -1
 +
-	rlc c
-	jr nc,+
-	add a
+	rlc c ; vuelve a rotar y poner el bit que estaba en el bit 7 como bit 0 y el que estaba en 6 como carry
+	jr nc,+ ;si c = 0, salta
+	add a ;si c = 1 añade a a sí mismo.
 +
 	ld h,d
-	ld l,$f1
-	ld (hl),a
-	call @func_6515
-	call @func_6551
+	ld l,$f1 
+	ld (hl),a ;guarda en el offset $f1 la velocidad
+	call @func_6515 
+	call @func_6551 ;actualiza el valor de $d9 y $d8.
 	ld e,$c3
 	ld a,(de)
 	and (hl)

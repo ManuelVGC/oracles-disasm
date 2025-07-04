@@ -244,17 +244,18 @@ interaction21_subid09:
 	.db TILEINDEX_PUSHABLE_BLOCK $3b $59 $5d $00 
 
 
-; d3: When an orb is hit, spawn an armos, as well as interaction which will spawn a chest
+; d3: Crea un orbe, when an orb is hit, spawn an armos, as well as interaction which will spawn a chest
 ; when it's killed.
 interaction21_subid0a:
 	call checkInteractionState
-	jr nz,@initialized
+	jr nz,@initialized ;si ya se ha inicializado salta a initialized
 
 	ld hl,wToggleBlocksState
-	res 4,(hl)
+	res 4,(hl) ;borra el bit 4 de wToggleBlockState porque es el que se activará cuando golpees el orbe que se crea más abajo.
 
 	ld hl,objectData.moonlitGrotto_orb
-	call parseGivenObjectData
+	call parseGivenObjectData ;crea el orbe anterior. El orbe se crea en la posición (7,5) y el subid es 4, indicando que ese será el bit de wToggleBlocksState
+	; que hará que esté golpeado o no.
 
 	call interactionDeleteAndRetIfItemFlagSet
 	call interactionIncState
@@ -262,12 +263,13 @@ interaction21_subid0a:
 @initialized:
 	ld hl,wToggleBlocksState
 	bit 4,(hl)
-	ret z
+	ret z ;mientras que el orbe no esté golpeado, sale
 
-	; Do something with the chest?
+	
 	ld a,$01
-	ld ($cca2),a
+	ld ($cca2),a ;pone cca2 a 1. Esto es para el armos que se crea más adelante.
 
+	; crea un armos que crea enemigos estatuas donde haya tiles de estatua y crea un dungeon stuff (con subid02) que hace aparecer un cofre cuando numEnemigos = 0.
 	ld hl,objectData.moonlitGrotto_onOrbActivation
 	call parseGivenObjectData
 

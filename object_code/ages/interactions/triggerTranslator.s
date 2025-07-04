@@ -16,25 +16,30 @@ interactionCode24:
 	ld a,(wToggleBlocksState)
 	ld c,a
 
+;comprueba que el bit de wSwitchState o wToggleBlocksState que le indicamos con el subid esté activo. En ese caso, lo activa en wActiveTriggers.
 @label_08_081:
 	ld e,Interaction.subid
 	ld a,(de)
-	swap a
-	and $07
-	ld hl,bitTable
-	add l
-	ld l,a
+	swap a ;se cambian los bits altos del subid por los bajos
+	and $07 ;se queda solo con los tres bits más bajos.
+	ld hl,bitTable ;carga bittable en hl (bittable es una tabla con ocho valores, y cada valor es un bitmask de un bit distinto de cada uno de los ocho de
+	; un byte, es rollo 0000 0001, 0000 0010, etc. De ahí se cogerá un valor de la tabla u otro dependiendo de este valor que salga de hacer and $07)
+	add l ;se hace a = a + l (donde l es la parte baja de hl)
+	ld l,a ;se suma básicamente a a l haciendo que hl ahora apunta a donde queremos apuntar habiendo usado el subid. Es decir, con el subid indicamos el bit que
+	;queremos comprobar que esté activo bien de wSwitchState o de wToggleBlocksState
 
-	ld a,c
-	and (hl)
-	ld b,a
-	ld a,(hl)
-	cpl
-	ld c,a
+	ld a,c ;a = wSwitchState
+	and (hl) ;compruebas que el bit que le has indicado con el subid esté activo.
+	ld b,a ;guardamos 0 o ese bit en b.
+
+	;invertimos la máscara de bits y lo desactivamos en wActiveTriggers, volviéndolo a activar gracias a b si era != 0.
+	ld a,(hl) ;cargamos la máscara de bits en a
+	cpl ; la invertimos
+	ld c,a ;y la cargamos en c
 	ld a,(wActiveTriggers)
-	and c
-	or b
-	ld (wActiveTriggers),a
+	and c ;desactivamos ese bit en wActiveTriggers gracias a la máscara invertida
+	or b ;y lo volvemos a activar en caso de que estuviese activado en wSwitchState o wToggleBlocksState.
+	ld (wActiveTriggers),a ;carga el nuevo wActiveTriggers.
 	ret
 
 ; Subid 1: control a bit in wActiveTriggers based on wSwitchState.

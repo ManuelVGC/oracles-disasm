@@ -31,12 +31,12 @@ interactionCodec7:
 
 	;a partir de aqui configura el objeto que acaba de crear:
 
-	;hl apunta aquí al primer campo del objeto recién creado, que es el id. Hace id = Y de la interacción
+	;hl apunta aquí al primer campo del objeto recién creado, que es el id. Hace id = Y de INTERAC_CREATE_OBJECT_AT_EACH_TILEINDEX
 	ld e,Interaction.yh
 	ld a,(de)
 	ldi (hl),a 
 
-	;hl apunta aquí al subid. Hace subid = bits bajos de X de la interacción
+	;hl apunta aquí al subid. Hace subid = bits bajos de X de INTERAC_CREATE_OBJECT_AT_EACH_TILEINDEX
 	ld e,Interaction.xh
 	ld a,(de)
 	and $0f
