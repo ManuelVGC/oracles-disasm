@@ -15,6 +15,8 @@ interactionCoded8:
 	.dw @state3
 	.dw @state4
 
+; carga en counter2 el valor de la tabla apuntado por el subid. Counter2 es el contador de tiempo entre grupos de tiles que cambian. Estos grupos de tiles están
+; indicados en scriptTable separados por $00.
 @state0:
 	ld e,Interaction.subid
 	ld a,(de)
@@ -33,19 +35,20 @@ interactionCoded8:
 @state1:
 	ld a,(wLever1PullDistance)
 	bit 7,a
-	ret z
+	ret z ; si la lever no está estirada del todo, sale.
 
 	; Lever has been pulled all the way.
 
 	call interactionIncState
 	ld l,Interaction.counter1
-	ld (hl),30
+	ld (hl),30 ;counter1 = 30. Contador a esperar antes de que cambie el suelo.
 
 	ld a,SND_SOLVEPUZZLE
 	call playSound
 
-	call @loadScriptForSubid
+	call @loadScriptForSubid ;tiles que cambian con la lever
 
+; cambia el estado de la lava source, los tiles esos de donde sale la lava
 @toggleLavaSource:
 	ld b,$06
 	ld a,TILEINDEX_LAVA_SOURCE_UP_LEFT
@@ -88,6 +91,7 @@ interactionCoded8:
 	pop hl
 	ret
 
+; carga una lista de tileindex dependiendo del subid
 @loadScriptForSubid:
 	ld e,Interaction.subid
 	ld a,(de)
@@ -99,7 +103,9 @@ interactionCoded8:
 	jp interactionSetMiniScript
 
 
-; Floor is being filled
+; Floor is being filled.
+; Se llena leyendo los tiles de scriptTable. Se cambian por grupos, primero la primera línea, espera, luego la segunda, espera, y así. Cuando encuentra un $00 en la
+; primera posición de la línea es que ya ha terminado de cambiar los tileindex de lava y pasa por tanto al state3.
 @state2:
 	call interactionDecCounter1
 	ret nz
@@ -128,6 +134,7 @@ interactionCoded8:
 
 
 ; Tiles have been filled. Waiting for lever to revert to starting position.
+; Cuando cambia la posición de la lever a la inicial vuelve a mirar los tiles que hay que cambiar y cambia los tiles de lava source.
 @state3:
 	ld a,(wLever1PullDistance)
 	or a
@@ -141,6 +148,7 @@ interactionCoded8:
 
 
 ; Tiles are being filled with lava again.
+; Igual que el state2 pero cambia ahora tiles de lava seca por lava.
 @state4:
 	call interactionDecCounter1
 	ret nz
@@ -194,6 +202,9 @@ interactionCoded8:
 	.dw @subid4Script
 	.dw @subid5Script
 
+
+; El formato es tile a cambiar y $00 final de línea.
+; Por ejemplo, .db $2a $00 indica cambiar el tile en la posición (2,A).
 ; D4, 1st lava-filler room
 @subid0Script:
 	.db $2a $00

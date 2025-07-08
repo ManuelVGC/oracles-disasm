@@ -425,23 +425,24 @@ swoop_hitGround:
 	call playSound
 
 	; Replace tile at this position if it's of the appropriate type, and not solid.
+	; Obtiene tile bajo el enemigo
 	ld bc,$0500
 	call objectGetRelativeTile
 	ld c,l
 	ld h,>wRoomCollisions
 	ld a,(hl)
 	cp $0f
-	ret z
+	ret z ;si es un tile sólido, sale
 
 	ld h,>wRoomLayout
 	ld a,(hl)
-	cp $a2
+	cp $a2 ;si es el tileindex especial a2, sale
 	ret z
-	cp $48
+	cp $48 ;si ya es un tileindex de agujero, sale
 	ret z
 
 	ld a,$48
-	call setTile
+	call setTile ;settea un tile de agujero donde ha caído el Swoop
 
 	ld b,INTERAC_ROCKDEBRIS
 	jp objectCreateInteractionWithSubid00

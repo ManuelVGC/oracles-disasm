@@ -434,6 +434,8 @@ interaction21_subid0f:
 	ld (wActiveTriggers),a
 	ret
 
+; el formato es: tileindex a comprobar si es ese, tres posiciones y o final de línea ($ff) o final de función ($00).
+; por ejemplo, la primera línea es tileindex rojo, posición (4,3), posición (4,5), posición (6,4) y final de línea.
 @tileData:
 	.db TILEINDEX_RED_TOGGLE_FLOOR    $43 $45 $64 $ff
 	.db TILEINDEX_YELLOW_TOGGLE_FLOOR $54 $63 $65 $ff
@@ -447,12 +449,14 @@ interaction21_subid10:
 	ld hl,@tileData
 	jp verifyTilesAndDropSmallKey
 
+; el formato es: tileindex a comprobar si es ese, dos posiciones y o final de línea ($ff) o final de función ($00).
+; por ejemplo, la primera línea es tileindex rojo, posición (5,4), posición (5,8) y final de línea.
 @tileData:
 	.db TILEINDEX_RED_TOGGLE_FLOOR  $54 $58 $ff
 	.db TILEINDEX_BLUE_TOGGLE_FLOOR $55 $57 $00
 
 
-; Tile-filling puzzle: when all the blue turns red, a chest will spawn here.
+; Tile-filling puzzle: when all the blue tiles ya no están, a chest will spawn here.
 interaction21_subid11:
 	call interactionDeleteAndRetIfEnabled02
 	call interactionDeleteAndRetIfItemFlagSet
@@ -618,15 +622,17 @@ interaction21_subid17:
 	call interactionDeleteAndRetIfEnabled02
 	call getThisRoomFlags
 	and ROOMFLAG_ITEM
-	jp nz,interactionDelete
+	jp nz,interactionDelete ;si ya se ha abierto el cofre, se elimina la interacción
 
-	ld e,Interaction.xh
+	ld e,Interaction.xh ;la X de la interacción indica el bit de wActiveTriggers que controlará la aparición del cofre
 	ld a,(de)
 	ld b,a
 	ld a,(wActiveTriggers)
 	cp b
-	jr nz,@triggerInactive
+	jr nz,@triggerInactive ;se compara el valor de X con el wActiveTriggers y no coincide es que no está el bit que queremos activado y por tanto salta a
+	; la función para eliminar el cofre (o no hacer nada en caso de que aún no haya cofre). Si el bit sí está activado, el código sigue, entrando a @triggerActive.
 
+;poner el cofre
 @triggerActive:
 	ld e,Interaction.yh
 	ld a,(de)
@@ -634,14 +640,16 @@ interaction21_subid17:
 	ld b,>wRoomLayout
 	ld a,(bc)
 	cp TILEINDEX_CHEST
-	ret z
+	ret z ;comprueba si ya hay un chest en esa posición de la sala
 
+	;si no lo hay, lo crea
 	ld a,TILEINDEX_CHEST
 	call setTile
 	call createPuffAt
 	ld a,SND_SOLVEPUZZLE
 	jp playSound
 
+;quitar el cofre
 @triggerInactive:
 	ld e,Interaction.yh
 	ld a,(de)
@@ -649,8 +657,9 @@ interaction21_subid17:
 	ld b,>wRoomLayout
 	ld a,(bc)
 	cp TILEINDEX_CHEST
-	ret nz
+	ret nz ;comprueba si hay un cofre en esa posición de la sala, si no lo hay, sale.
 
+	; si hay un cofre en esa posición vuelve a poner el tile que había ahí antes de un cofre.
 	; Retrieve whatever tile was there before the chest
 	ld a,:w3RoomLayoutBuffer
 	ld ($ff00+R_SVBK),a

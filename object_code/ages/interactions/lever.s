@@ -83,6 +83,7 @@ interactionCode61:
 	ld (de),a
 
 	; [var31] = y-offset of lever when fully extended.
+	; Según el bit 4 y 5 del subid se escoge una de las posibles longitudes de la lever especificadas en @leverLengths.
 	ld l,Interaction.subid
 	ld a,(hl)
 	and $30
@@ -186,7 +187,7 @@ interactionCode61:
 	ld (hl),a
 	ld (w1Link.y),a
 
-	ld b,SPEED_40
+	ld b,SPEED_40 ;este valor indica la velocidad a la Link tira de la lever.
 	inc a
 	jr @setSpeedAndAngle
 
@@ -247,7 +248,7 @@ interactionCode61:
 	call interactionIncState
 	ld l,Interaction.enabled
 	res 1,(hl)
-	ld b,SPEED_40
+	ld b,SPEED_40 ;este valor indica la velocidad a la que la lever vuelve a su posición original cuando la sueltas.
 	xor a
 
 @setSpeedAndAngle:
