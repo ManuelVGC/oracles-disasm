@@ -1433,7 +1433,7 @@ linkState02:
 
 	ld a,(wActiveTileType)
 	cp TILETYPE_WARPHOLE
-	jr nz,@respawn
+	jr nz,@respawn ;si no es un warphole, salta a respawn
 
 .ifdef ROM_AGES
 	; Check if the current room is the moblin keep with the crumbling floors

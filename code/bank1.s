@@ -2192,13 +2192,13 @@ updateLinkBeingShocked:
 initiateFallDownHoleWarp:
 	ld a,(wDungeonFloor)
 	dec a
-	ld (wDungeonFloor),a
+	ld (wDungeonFloor),a ;cambia el piso al piso justo de abajo
 
 	call getActiveRoomFromDungeonMapPosition
-	ld (wWarpDestRoom),a
+	ld (wWarpDestRoom),a ;misma posición de sala (misma fila y columna en la dungeon)
 
 	call objectGetShortPosition
-	ld (wWarpDestPos),a
+	ld (wWarpDestPos),a ;misma posición dentro de la sala (X e Y de Link dentro de la sala)
 
 	ld a,(wActiveGroup)
 	or $80
