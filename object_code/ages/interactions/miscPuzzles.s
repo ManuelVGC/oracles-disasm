@@ -1055,25 +1055,25 @@ miscPuzzles_subid19:
 @state2:
 	ld a,(wActiveTriggers)
 	rrca
-	jr nc,@@releasedTrigger
+	jr nc,@@releasedTrigger ;si el jugador ha releaseado el trigger, se salta a quitar el puente.
 	call interactionDecCounter1
-	ret nz
+	ret nz ;se hace un pequeño delay entre pisar el botón y construir el puente.
 	ld (hl),$08
-	ld hl,wRoomLayout+$55
+	ld hl,wRoomLayout+$55 ;carga como primera posición a comprobar el tile 55 (posición (5,5) en la sala)
 --
 	ld c,l
-	ldi a,(hl)
-	cp TILEINDEX_BLANK_HOLE
+	ldi a,(hl) ;carga el tile actual y salta al siguiente para después
+	cp TILEINDEX_BLANK_HOLE ;comprueba si el tileindex de la posición es un agujero
 	jr nz,++
-	ld a,TILEINDEX_HORIZONTAL_BRIDGE
-	call setTileInAllBuffers
+	ld a,TILEINDEX_HORIZONTAL_BRIDGE 
+	call setTileInAllBuffers ;si es un agujero, lo cambia por una tilendex de puente
 	ld a,SND_DOORCLOSE
 	jp playSound
 ++
 	ld a,l
-	cp $5a
-	jr c,--
-	jp interactionIncState
+	cp $5a ;se compara hasta que el tile que estemos comprobando sea el 5a (se comprueban por tanto del 55 al 59)
+	jr c,-- ;mientras no sea 5a, se sigue el bucle
+	jp interactionIncState ;cuando ya se haya construido el bucle entero se pasa al siguiente estado
 
 @@releasedTrigger:
 	call interactionIncState
@@ -1088,10 +1088,11 @@ miscPuzzles_subid19:
 	jp interactionIncState
 
 ; Trigger released, in the process of retracting the bridge
+; Hace lo mismo que el state2 pero al contrario.
 @state4:
 	ld a,(wActiveTriggers)
 	rrca
-	jr c,@@pressedTrigger
+	jr c,@@pressedTrigger ;si se presiona el trigger vuelve al state1.
 	call interactionDecCounter1
 	ret nz
 

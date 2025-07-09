@@ -624,7 +624,7 @@ interaction21_subid17:
 	and ROOMFLAG_ITEM
 	jp nz,interactionDelete ;si ya se ha abierto el cofre, se elimina la interacción
 
-	ld e,Interaction.xh ;la X de la interacción indica el bit de wActiveTriggers que controlará la aparición del cofre
+	ld e,Interaction.xh ;la X de la interacción indica el bit/los bit de wActiveTriggers que controlará la aparición del cofre
 	ld a,(de)
 	ld b,a
 	ld a,(wActiveTriggers)

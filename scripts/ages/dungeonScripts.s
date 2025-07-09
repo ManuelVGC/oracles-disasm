@@ -155,6 +155,7 @@ skullDungeonScript_spawnChestWhenOrb1Hit:
 
 
 ; The room with 3 eyeball-statue things that need to be hit with a seed shooter
+; Comprueba los tres bits más bajos de wActiveTriggers, que indican si los ojos están activos. Si los tres están a 1, spawnea un cofre.
 crownDungeonScript_spawnChestWhen3TriggersActive:
 	stopifitemflagset
 	checkmemoryeq wActiveTriggers, $07
