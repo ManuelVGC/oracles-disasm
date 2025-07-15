@@ -136,6 +136,7 @@ miscPuzzles_subid00:
 
 
 ; Underwater switch hook puzzle in past d6
+; Comprueba que en X tiles haya tilesindex de switch diamond.
 miscPuzzles_subid01:
 	call interactionDeleteAndRetIfEnabled02
 	call miscPuzzles_deleteSelfAndRetIfItemFlagSet
@@ -365,6 +366,8 @@ miscPuzzles_subid07:
 	call checkInteractionState
 	jr z,@state0
 
+; Cuando cambia el número de antorchas encendidas comprueba el orden de encendido y si es incorrecto, las apaga, y si es correcto, cuando llega a 4 encendidas,
+; mueve la pared.
 @state1:
 	call checkLinkVulnerable
 	ret nc
@@ -373,30 +376,33 @@ miscPuzzles_subid07:
 	call @checkLitTorches
 	ld e,Interaction.counter1
 	ld a,(de)
-	cp b
-	ret z
+	cp b ;compara el estado de las antorchas que guardó en el state1 con el estado actual de las antorchas (b)
+	ret z ;si no ha cambiado, sale, si sí, sigue
 
 	; It's changed.
 	ld a,b
-	ld (de),a
+	ld (de),a ;actualiza counter1 con el estado actual de las antorchas
 
-	ld e,Interaction.substate
+	ld e,Interaction.substate ;número de antochas encendidas
 	ld a,(de)
 	ld hl,@torchLightOrder
 	rst_addAToHl
 	ld a,(hl)
-	cp b
+	cp b ;compara que la antorcha encendida esté en su orden correcto. Por ejemplo, si hay dos antorchas encendidas a = 0011 y si las antorchas encendidas no
+	; se hubiesen encendido en orden, pon por ejemplo que se encendió primero la primera y luego la cuarta, b = 1001, así que como a != b, no se han encendido en
+	; orden. La primera estaba en orden, a = 0001 y b = 0001, pero en la segunda falla.
 	jr nz,@litWrongTorch
 
 	ld a,(de)
 	cp $03
-	jp c,interactionIncSubstate
+	jp c,interactionIncSubstate ; si aún no hay cuatro antorchas encendidas, aumenta el número de encendidas
 
 	; Lit all torches
 	ld a, $ff ~ (DISABLE_ITEMS | DISABLE_ALL_BUT_INTERACTIONS)
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 
+	;Cuando todas las antorchas estén encendidas hace el movimiento de la pared
 	ld a,CUTSCENE_WALL_RETRACTION
 	ld (wCutsceneTrigger),a
 
@@ -406,6 +412,7 @@ miscPuzzles_subid07:
 	set 6,(hl)
 	jp interactionDelete
 
+; apaga las antorchas y vuelve a crear las PART_LIGHTABLE_TORCH
 @litWrongTorch:
 	xor a
 	ld (de),a
@@ -428,25 +435,28 @@ miscPuzzles_subid07:
 	jr @makeTorchesLightable
 
 @torchLightOrder:
-	.db $01 $03 $07 $0f
+	.db $01 $03 $07 $0f ;0001 0011 0111 1111. Establece el orden en que que deben encenderse, primero la del bit 0, luego la del 1, etc.
 
+
+; Si ya se ha resuelto el puzzle (4 antorchas encendidas en el orden correcto), borra la interacción.
+; Si no, guarda las antorchas encendidas (0000, el código solo se ejecuta al entrar a la sala así que están todavía apagadas (estado inicial)).
 @state0:
 	call getThisRoomFlags
 	and ROOMFLAG_80
-	jp nz,interactionDelete
+	jp nz,interactionDelete ;cuando ya se haya retraido la pared, se borra la interacción
 
 	call interactionIncState
-	call @checkLitTorches
+	call @checkLitTorches ;actualiza el bitmask b indicando qué antorchas están encendidas
 	ld a,b
 	ld e,Interaction.counter1
-	ld (de),a
+	ld (de),a ;guarda en counter1 el estado de las antorchas encendidas
 
 @makeTorchesLightable:
-	call @makeTorchesUnlightable
-	ld hl,objectData.objectData_makeTorchesLightableForD6Room
+	call @makeTorchesUnlightable ;borra las part_lightable_torch
+	ld hl,objectData.objectData_makeTorchesLightableForD6Room ;las vuelve a crear
 	jp parseGivenObjectData
 
-;;
+;; Borra las PART_LIGHTABLE_TORCH
 @makeTorchesUnlightable:
 	ldhl FIRST_PART_INDEX, Part.id
 --
@@ -469,28 +479,29 @@ miscPuzzles_subid07:
 
 ;;
 ; @param[out]	b	Bitset of lit torches (in bits 0-3)
+; Comprueba qué antorchas están encendidas y construye un bitmask con esa información
 @checkLitTorches:
 	ld a,TILEINDEX_LIT_TORCH
-	ld b,$00
+	ld b,$00 ;bitmask de antorchas encendidas
 	ld hl,wRoomLayout+$31
-	cp (hl)
-	jr nz,+
-	set 0,b
+	cp (hl) ;compara si el tile en la posición (3,1) es una antorcha encendida
+	jr nz,+ ;sino, salta a comprobar la siguiente antorcha
+	set 0,b ;si el tileindex es una antorcha encendida activa el bit 0 del bitmask b.
 +
 	ld l,$33
-	cp (hl)
+	cp (hl) ;compara si el tile en la posición (3,3) es una antorcha encendida
 	jr nz,+
-	set 1,b
+	set 1,b ;si el tileindex es una antorcha encendida activa el bit 1 del bitmask b.
 +
 	ld l,$53
-	cp (hl)
+	cp (hl) ;compara si el tile en la posición (5,3) es una antorcha encendida
 	jr nz,+
-	set 2,b
+	set 2,b ;si el tileindex es una antorcha encendida activa el bit 2 del bitmask b.
 +
 	ld l,$35
-	cp (hl)
+	cp (hl) ;compara si el tile en la posición (3,5) es una antorcha encendida
 	ret nz
-	set 3,b
+	set 3,b ;si el tileindex es una antorcha encendida activa el bit 3 del bitmask b.
 	ret
 
 

@@ -2007,7 +2007,7 @@ cutscene_incCBB3:
 func_701d:
 	ld a,(wDungeonIndex)
 	cp $08
-	jp z,wallRetraction_dungeon8
+	jp z,wallRetraction_dungeon8 ;si la retracción es la de la mazmorra 8 salta a esa retracción concreta
 
 	; D6 wall retraction
 	ld a,(wCutsceneState)

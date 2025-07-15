@@ -433,14 +433,18 @@ tileReplacement_group5Map38:
 tileReplacement_group5Map25:
 	call getThisRoomFlags
 	and $40
-	ret nz
+	ret nz ;si el bit está activado, la pared está ya abierta de normal
 
-	ld hl,d6RetractingWallRectPresent
+	;si el bit está desactivado, no se ha completado el puzzle en el pasado así que la pared aparece cerrada.
+	ld hl,d6RetractingWallRectPresent 
 	call fillRectInRoomLayout
 	jr ++
 
+
+; Completa un rectángulo con un tipo de tileindex concreto.
+; El formato es: coordenadas donde empieza, largo en tiles, ancho en tiles, tileindex a usar.
 d6RetractingWallRectPresent:
-	.db $17 $09 $04 $a6
+	.db $17 $09 $04 $a6 
 d6RetractingWallRectPast:
 	.db $17 $09 $04 $a7
 
@@ -448,9 +452,10 @@ d6RetractingWallRectPast:
 ; D6 past: screen with retracting walls
 tileReplacement_group5Map43:
 	call getThisRoomFlags
-	and $40
-	jr nz,@pastRetracted
+	and $40 ;si el bit 6 de la sala está activo significa que la pared ya se ha retraído
+	jr nz,@pastRetracted ;si ya se ha retraído la pared, pones encendidas las antorchas
 
+	; si no se ha retraído la pared, la retraes
 	ld hl,d6RetractingWallRectPast
 	call fillRectInRoomLayout
 ++
@@ -459,6 +464,8 @@ tileReplacement_group5Map43:
 	ld hl,@wallEdge2
 	jp fillRectInRoomLayout
 
+; Completa un rectángulo con un tipo de tileindex concreto. En este caso, p
+; El formato es: coordenadas donde empieza, largo en tiles, ancho en tiles, tileindex a usar.
 @wallEdge1:
 	.db $1b $09 $01 $b3
 
@@ -471,7 +478,7 @@ tileReplacement_group5Map43:
 	jp replaceTiles
 
 @tilesToReplace:
-	.db $09 $08 ; Replace unlit torch with lit
+	.db $09 $08 ; Replace unlit torch (08) with lit (09)
 	.db $00
 
 ;;
