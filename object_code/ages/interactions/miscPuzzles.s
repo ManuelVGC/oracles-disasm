@@ -42,6 +42,9 @@ interactionCode90:
 
 
 ; Boss key puzzle in D6
+; Hay dos palancas. Cuando tiras de cualquiera de ellas, si es la primera vez, saldrán serpientes. Después, al volver a tirar de alguna, se tira un elige un número
+; aleatorio de 0 a 3 y si es 0, sale el cofre; pero si es distinto de 0, salen las serpientes. Cuando salga el cofre ya se activa un bit de wActiveTriggers y se
+; abre la puerta de la sala.
 miscPuzzles_subid00:
 	ld e,Interaction.state
 	ld a,(de)
@@ -60,15 +63,17 @@ miscPuzzles_subid00:
 	; Return if a lever has not been pulled?
 	ld hl,wLever1PullDistance
 	bit 7,(hl)
-	jr nz,+
-	inc l
-	bit 7,(hl)
-	ret z
+	jr nz,+ ;si el bit 7 de la lever 1 está a 1, saltamos a +
+	inc l 
+	bit 7,(hl) ;si el bit 7 de la lever 2 está a 1, saltamos a +
+	ret z ; si ninguno de ambas lever tiene el bit 7 activado, sale. Ninguna lever está completamente extendida.
 +
+	; Si alguna de las dos lever ha sido totalmente extendida, sigue el código.
+
 	; Check if the chest has already been opened
 	call getThisRoomFlags
 	and ROOMFLAG_ITEM
-	jr nz,@alreadyOpened
+	jr nz,@alreadyOpened ;si ya se ha abierto el cofre, activa el trigger para que se abra la puerta de la sala y borra la interacción.
 
 	; Go to state 2 (or possibly 3, if this gets called again)
 	call interactionIncState
@@ -77,8 +82,9 @@ miscPuzzles_subid00:
 	ld l,Interaction.counter2
 	ld a,(hl)
 	or a
-	jr nz,@checkRng
+	jr nz,@checkRng ;Si counter2 != 0, salta a checkRNG
 
+	; Si counter2 = 0, entonces es la primera vez tirando de una lever
 	; This was the first time pulling the lever; always unsuccessful
 	ld (hl),$01
 	jr @error
@@ -91,7 +97,7 @@ miscPuzzles_subid00:
 	; If the number is 0, the chest will appear; go to state 3.
 	jp z,interactionIncState
 
-	; If the number is 1-3, make the snakes appear.
+	; If the number is 1-3, make the snakes appear. 
 @error:
 	ld a,SND_ERROR
 	call playSound
@@ -103,7 +109,7 @@ miscPuzzles_subid00:
 	ld b,$20
 	call clearMemory
 
-	callab roomInitialization.generateRandomBuffer
+	callab roomInitialization.generateRandomBuffer ;se seleccionan posiciones aleatorias donde saldrán los enemigos cada vez que se falla.
 
 	; Spawn the snakes?
 	ld hl,objectData.objectData78db
@@ -114,7 +120,7 @@ miscPuzzles_subid00:
 @state2:
 	ld a,(wNumEnemies)
 	or a
-	ret nz
+	ret nz ;cuando mates todas las serpientes, se vuelve al state1.
 
 	; Go back to state 1
 	ld a,$01
@@ -123,6 +129,7 @@ miscPuzzles_subid00:
 	ret
 
 ; State 3: lever has been pulled successfully. Make the chest and delete self.
+; Cuando aciertas el RNG sale el cofre y se activa el trigger para que se abra la puerta y se borra la interacción.
 @state3:
 	ld a,$01
 	ld (wActiveTriggers),a
@@ -161,19 +168,19 @@ miscPuzzles_subid02:
 	; Check that the tile at this position matches the cube color
 	call objectGetTileAtPosition
 	sub TILEINDEX_RED_TOGGLE_FLOOR
-	ld b,a
+	ld b,a ;guarda en b el color del tile donde está la interacción
 	ld a,(wRotatingCubePos)
 	cp l
 	ret nz
 	ld a,(wRotatingCubeColor)
 	and $03
-	cp b
+	cp b ;compara el color del tile donde está la interacción con el color del dado
 	ret nz
 
 	; They match.
 	ld c,l
 	ld a,TILEINDEX_STANDARD_FLOOR
-	call setTile
+	call setTile ;cambia el tile por un tileindex de suelo normal
 	ld b,>wRoomCollisions
 	ld a,$0f
 	ld (bc),a
@@ -194,31 +201,33 @@ miscPuzzles_subid03:
 	jpab agesInteractionsBank08.spawnChestAndDeleteSelf
 
 @wantedFloorTiles:
-	.db TILEINDEX_STANDARD_FLOOR
-	.db $37 $65 $69
-	.db $00
+	.db TILEINDEX_STANDARD_FLOOR ;tile que esperamos
+	.db $37 $65 $69 ;posiciones en la que lo esperamos
+	.db $00 ;fin de tabla
 
 ;;
 ; @param	hl	Pointer to data. First byte is a tile index; then an arbitrary
 ;			number of positions in the room where that tile should be; $ff to
 ;			give a new tile index; $00 to stop.
 ; @param[out]	zflag	z if all tiles matched as expected.
+; Comprueba las posiciones de la sala que se le pasan con @wantedFloorTiles para ver si hay suelo normal en ellas. 
 miscPuzzles_verifyTilesAtPositions:
 	ld b,>wRoomLayout
 @newTileIndex:
-	ldi a,(hl)
+	ldi a,(hl) ;a = tileindex_standard_floor. Queremos ver si los tiles en las posiciones indicadas en @wantedFloorTiles son de ese tipo.
 	or a
 	ret z
-	ld e,a
+	ld e,a ; e = a
 @nextTile:
-	ldi a,(hl)
+	ldi a,(hl) ;lee una posición de las que le pasamos.
 	ld c,a
 	or a
 	ret z
 	inc a
 	jr z,@newTileIndex
 	ld a,(bc)
-	cp e
+	cp e ;compara el tileindex en la posición con e (tileindex de suelo normal). Si no coincide sale, si coincide sigue comprobando el resto de posiciones que
+	; se le han pasado con la tabla.
 	ret nz
 	jr @nextTile
 
@@ -235,27 +244,27 @@ miscPuzzles_subid04:
 	ld b,a
 	ld e,Interaction.counter2
 	ld a,(de)
-	cp b
-	ret z
+	cp b ;compara el estado actual del orbe (b) con el estado anterior del orbe (counter2).
+	ret z ;Si es igual, no ha cambiado, sale. Si no, sigue.
 
 	ld a,b
-	ld (de),a
+	ld (de),a ;actualiza counter2 con el estado actual
 	ld a,$ff
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 
 	ld e,Interaction.counter1
-	ld a,(de)
-	inc a
-	and $01
-	ld b,a
-	ld (de),a
+	ld a,(de) ;a = counter1
+	inc a ;incrementa a que sería 0 ó 1 así que será 1 ó 2
+	and $01 ;se queda solo con el bit más bajo así que a pasará a ser 0 ó 1.
+	ld b,a ;b = a = 0 ó 1. 
+	ld (de),a ;counter1 = a = 0 ó 1.
 
 	ld c,$05
 	call @spawnSubid
 	ld c,$06
 	call @spawnSubid
-	callab bank16.loadD6ChangingFloorPatternToBigBuffer
+	callab bank16.loadD6ChangingFloorPatternToBigBuffer ;carga en el buffer los dos mapas de tiles distintos que habrá. Según el valor de b se mostrará uno u otro.
 	ret
 
 @spawnSubid:
@@ -268,6 +277,7 @@ miscPuzzles_subid04:
 	ld (hl),b
 	ret
 
+; Guarda el estado inicial del orbe (wToggleBlocksState) en counter2.
 @state0:
 	ld a,(wToggleBlocksState)
 	ld e,Interaction.counter2
@@ -275,7 +285,8 @@ miscPuzzles_subid04:
 	jp interactionIncState
 
 
-; Helpers for floor changer (subid $04)
+; Helpers for floor changer (subid $04).
+; Pintan los tiles cargados en el subid $04.
 miscPuzzles_subid05:
 miscPuzzles_subid06:
 	ld e,Interaction.substate
@@ -283,26 +294,27 @@ miscPuzzles_subid06:
 	or a
 	jr nz,@substate1
 
+; Carga las variables var30, var31, var32 y var33 con la forma de pintar los tiles.
 @substate0:
 	ld e,Interaction.subid
 	ld a,(de)
-	sub $05
+	sub $05 ;a = 0 ó 1. 
 	add a
 	ld hl,@data
 	rst_addDoubleIndex
 	ld b,$04
 	ld e,Interaction.var30
-	call copyMemory
+	call copyMemory ;copia b bytes desde var30.
 	jp interactionIncSubstate
 
 ; Values for var30-var33
-; var30: Start position
-; var31: Value to add to position (Y) (alternates direction each column)
-; var32: Value to add to position (X)
-; var33: Offset in wBigBuffer to read from
+; var30: Start position. Posición inicial desde la que escribir los tiles.
+; var31: Value to add to position (Y) (alternates direction each column). Moverse una fila hacia arriba o hacia abajo (distancia a añadir para pasar a otra fila)
+; var32: Value to add to position (X). Moverse una columna hacia arriba o hacia abajo (distancia a añadir para pasar a otra columna).
+; var33: Offset in wBigBuffer to read from. Desde dónde leer en wBigBuffer.
 @data:
-	.db $91 $f0 $01 $00 ; subid 5
-	.db $1d $10 $ff $80 ; subid 6
+	.db $91 $f0 $01 $00 ; subid 5. El subid 5 pinta la mitad de la sala. $f0 = moverse una fila hacia arriba. $01 = moverse una columna hacia la derecha.
+	.db $1d $10 $ff $80 ; subid 6. El subid 6 pinta la otra mitad de la sala. $10 = moverse una fila hacia abajo. $ff = moverse una columna hacia la izquierda.
 
 @substate1:
 	ld e,Interaction.var33
@@ -310,13 +322,17 @@ miscPuzzles_subid06:
 	ld l,a
 	ld h,>wBigBuffer
 
+; escribe el siguiente tile que toque escribir. Recorre el buffer por columnas y dentro de esas columnas lo va pintando por filas. Cuando se llega a final de columna
+; pasa a la siguiente y se invierte la forma de recorrerla, si al principio se recorría de arriba abajo, después que empiezas la columna por abajo se recorrería de abajo
+; arriba.
 @nextTile:
 	ldi a,(hl)
 	or a
 	jr z,@deleteSelf
 	cp $ff
-	jr nz,@setTile
+	jr nz,@setTile ;si el valor leído no es ff, escribes el tile
 
+	; si es ff, cambias de columna a la siguiente.
 	ld e,Interaction.var32
 	ld a,(de)
 	ld b,a
@@ -324,12 +340,16 @@ miscPuzzles_subid06:
 	ld a,(de)
 	add b
 	ld (de),a
+
+	; se invierte el desplazamiento vertical, para que se pinte al revés, haciendo un efecto de zigzag. Es decir, imagínate, primera columna se pinta el tile de arriba
+	; a la izquierda, luego el de debajo de ese, luego el de debajo de ese, etc. Luego, cuando termina la columna, se pasa a la siguiente y se invierte este
+	; desplazamiento, pasando al tile de arriba, luego al de arriba suya y así.
 	ld e,Interaction.var31
 	ld a,(de)
-	cpl
+	cpl ;invierte el valor que se le pase
 	inc a
 	ld (de),a
-	call @nextRow
+	call @nextRow ;vas recorriendo por filas cada columna para ir escribiendo los tiles
 	jr @nextTile
 
 @setTile:

@@ -229,6 +229,27 @@ wildTokayObjectTable:
 	obj_Interaction $48 $0c $f8 $88
 	obj_End
 
+
+; Los randomEnemy tienen tres dígitos: bits que indican respawn, uncounted, spawn anywhere y cantidad; id y subid.
+; Ese primer dígito se divide de la siguiente forma:
+; Bit más bajo (bit 0) --> respawn o no.
+; Bit 1 --> uncounted o no.
+; Bit 2 --> spawn anywhere o no.
+; Bits 3 y 4 --> no parecen usarse.
+; Bits 5, 6 y 7 --> cantidad de enemigos.
+; Ejemplos prácticos:
+; 0010 0000 --> no respawn, no uncounted, no spawn anywhere, 1.
+; 0010 0001 --> respawn, no uncounted, no spawn anywhere, 1.
+; 0010 0011 --> respawn, uncounted, no spawn anywhere, 1.
+; 0100 0000 --> no respawn, no uncounted, no spawn anywhere, 2.
+; 0100 0011 --> respawn, uncounted, no spawn anywhere, 2.
+; 0110 0000 --> no respawn, no uncounted, no spawn anywhere, 3.
+; 0110 0100 --> no respawn, no uncounted, spawn anywhere, 3.
+; 1000 0000 --> no respawn, no uncounted, no spawn anywhere, 4.
+; 1000 0100 --> no respawn, no uncounted, spawn anywhere, 4.
+; 1010 0110 --> no respawn, uncounted, spawn anywhere, 5.
+; 1100 0110 --> no respawn, uncounted, spawn anywhere, 6.
+; Este código concreto define 4 ropes (id 10) con subid 01 (caen del techo).
 objectData78db:
 	obj_RandomEnemy $81 $10 $01
 	obj_End

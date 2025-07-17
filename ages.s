@@ -919,12 +919,15 @@ m_section_free Bank16_2 NAMESPACE bank16
 ;;
 ; Used in the room in present Mermaid's Cave with the changing floor
 ;
-; @param	b	Floor state (0/1)
+; @param	b	Floor state (0/1). Indica qué patrón de suelo se debe usar.
+; Se cargan dos zonas en wBigBuffer.
 loadD6ChangingFloorPatternToBigBuffer:
 	ld a,b
 	add a
 	ld hl,@changingFloorData
-	rst_addDoubleIndex
+	rst_addDoubleIndex ; se recorre la tabla de dos en dos. Tiene punteros dobles.
+
+	; copia la mitad de los datos a la parte baja de wBigBuffer
 	push hl
 	ldi a,(hl)
 	ld d,(hl)
@@ -933,6 +936,7 @@ loadD6ChangingFloorPatternToBigBuffer:
 	ld hl,wBigBuffer
 	call copyMemoryReverse
 
+	; copia la otra mitad de los datos a la parte alta de wBigBuffer
 	pop hl
 	inc hl
 	inc hl
@@ -948,6 +952,7 @@ loadD6ChangingFloorPatternToBigBuffer:
 	ret
 
 @changingFloorData:
+	;Estos dos son el estado por defecto de la sala.
 	.dw @tiles0_bottomHalf
 	.dw @tiles0_topHalf
 
@@ -955,8 +960,8 @@ loadD6ChangingFloorPatternToBigBuffer:
 	.dw @tiles1
 
 @tiles0_bottomHalf:
-	.db $a0 $a0 $a0 $1d $a0 $1d $f4 $f4 $f4 $ff
-	.db $f4 $f4 $f4 $f4 $a0 $a0 $a0 $a0 $a0 $ff
+	.db $a0 $a0 $a0 $1d $a0 $1d $f4 $f4 $f4 $ff ;esto es la primera columna de la sala, leída desde abajo hacia arriba. 
+	.db $f4 $f4 $f4 $f4 $a0 $a0 $a0 $a0 $a0 $ff ;esto es la segunda columna de la sala, leída desde arriba hacia abajo.
 	.db $a0 $a0 $a0 $f4 $f4 $f4 $f4 $f4 $f4 $ff
 	.db $f4 $f4 $f4 $f4 $f4 $f4 $f4 $a0 $a0 $ff
 	.db $a0 $f4 $f4 $f4 $f4 $f4 $f4 $f4 $f4 $ff
@@ -965,8 +970,8 @@ loadD6ChangingFloorPatternToBigBuffer:
 	.db $00
 
 @tiles0_topHalf:
-	.db $a0 $a0 $a0 $1d $a0 $1d $f4 $f4 $f4 $ff
-	.db $a0 $f4 $f4 $f4 $a0 $a0 $a0 $a0 $a0 $ff
+	.db $a0 $a0 $a0 $1d $a0 $1d $f4 $f4 $f4 $ff ;esto es la última columna de la sala, leída desde arriba hacia abajo. 
+	.db $a0 $f4 $f4 $f4 $a0 $a0 $a0 $a0 $a0 $ff ;esto es la penúltima columna de la sala, leída desde abajo hacia arriba. 
 	.db $a0 $a0 $a0 $a0 $f4 $f4 $f4 $f4 $a0 $ff
 	.db $a0 $f4 $f4 $f4 $f4 $f4 $a0 $a0 $a0 $ff
 	.db $a0 $a0 $f4 $f4 $f4 $f4 $f4 $f4 $f4 $ff

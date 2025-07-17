@@ -272,7 +272,7 @@ extraEnemyData:
 	.db $04 $06 $fc $01 ; 0x07
 	.db $06 $06 $fe $02 ; 0x08
 	.db $04 $06 $fc $02 ; 0x09
-	.db $06 $06 $fc $02 ; 0x0a
+	.db $06 $06 $fc $02 ; 0x0a ;rope
 	.db $04 $06 $fc $03 ; 0x0b
 	.db $06 $06 $fc $03 ; 0x0c
 	.db $06 $06 $fa $03 ; 0x0d
