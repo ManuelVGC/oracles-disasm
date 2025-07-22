@@ -208,10 +208,12 @@ replaceToggleBlocks:
 ;;
 ; Does the necessary tile changes if underwater in jabu-jabu.
 replaceJabuTilesIfUnderwater:
+	;Si la mazmorra no es la 7, sale.
 	ld a,(wDungeonIndex)
 	cp $07
 	ret nz
 
+	; Si es una sala sidecroll, sale.
 	ld a,(wTilesetFlags)
 	and TILESETFLAG_SIDESCROLL
 	ret nz
@@ -229,6 +231,7 @@ replaceJabuTilesIfUnderwater:
 	ld de,@data2
 	jp replaceTiles
 
+; Cambia en el piso todos los tiles de agujero del tipo que al caer te haces daño pasan a agua por la que puedes pisar.
 @data1:
 	.db $fa $f3 ; holes -> shallow water
 	.db $fa $f4
@@ -237,6 +240,7 @@ replaceJabuTilesIfUnderwater:
 	.db $fa $f7
 	.db $00
 
+; Cambia en el piso todos los tiles de agujero del tipo que al caer caes al piso inferior pasan a agua profunda.
 @data2:
 	.db $fc $48 ; floor-transfer holes -> deep water
 	.db $fc $49

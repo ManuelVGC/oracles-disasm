@@ -37,7 +37,7 @@ fireballShooter_state_uninitialized:
 ; "Spawner"; spawns shooters at each appropriate tile index, then deletes self.
 fireballShooter_state1:
 	xor a
-	ldh (<hFF8D),a
+	ldh (<hFF8D),a ;hFF8D = 0
 
 	ld e,Enemy.yh
 	ld a,(de)
@@ -65,7 +65,9 @@ fireballShooter_state1:
 	set 7,a
 	ldi (hl),a
 
-	; [child.var03] = ([hFF8D]+1)&3 (timing offset)
+	; [child.var03] = ([hFF8D]+1)&3 (timing offset).
+	; Con esto lo que hace es que incrementa el hFF8D cada vez que se crea un hijo nuevo (0-->1-->2-->3-->0-->1, etc). De esta forma cada hijo tiene un offset
+	; y no disparan todos a la vez.
 	ldh a,(<hFF8D)
 	inc a
 	and $03
@@ -133,9 +135,9 @@ fireballShooter_state9:
 	call ecom_spawnProjectile
 
 	; Random cooldown between $c0-$c7
-	call getRandomNumber_noPreserveVars
-	and $07
-	add $c0
+	call getRandomNumber_noPreserveVars ;se genera un número aleatorio entre $00 y $ff
+	and $07 ;se limita el valor anterior para que sea entre 0 y 7
+	add $c0 ;se le añaden mínimo 192 frames de cooldown
 	ld e,Enemy.counter1
 	ld (de),a
 	ret

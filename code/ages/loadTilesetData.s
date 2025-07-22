@@ -160,11 +160,14 @@ checkTilesetOverride:
 	xor a
 	ret
 
+; Cambia el tileset de un piso a inundado según el valor de wJabuWaterLevel.
 @checkJabuFlooded:
+	; Si no es la mazmorra 7 salta a @@noChange.
 	ld a,(wDungeonIndex)
 	cp $07
 	jr nz,@@noChange
 
+	; Si es una sala de sidescroll salta a @@noChange creo.
 	ld a,(wTilesetFlags)
 	and TILESETFLAG_SIDESCROLL
 	jr nz,@@noChange
@@ -177,16 +180,16 @@ checkTilesetOverride:
 
 	; Check if this floor is considered underwater or not
 	ld a,(wJabuWaterLevel)
-	and $07
-	ld hl,@@jabuBitset
+	and $07 ;te quedas con los tres bits bajos.
+	ld hl,@@jabuBitset ;según estos bits escoges un valor de esta tabla.
 	rst_addAToHl
-	ld a,(wDungeonFloor)
-	ld bc,bitTable
-	add c
+	ld a,(wDungeonFloor) ; a = piso actual
+	ld bc,bitTable 
+	add c ;sumas el piso actual a c para hacer un offset dentro de bitTable dependiendo del piso.
 	ld c,a
-	ld a,(bc)
-	and (hl)
-	ret z
+	ld a,(bc) ;cargas el bitmask obtenido de bitTable en a.
+	and (hl) ;bitmask de bitTable AND valor de jabuBitset
+	ret z ;si el AND es 0 entonces sale, sino, es que el piso está inundado.
 
 	; Is underwater; use tileset $3f (underwater) instead of $3e (not underwater)
 	ldh a,(<hFF8D)

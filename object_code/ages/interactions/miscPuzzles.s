@@ -550,7 +550,8 @@ miscPuzzles_subid09:
 
 
 
-; Jabu-jabu water level controller script, in the room with the 3 buttons
+; Jabu-jabu water level controller script, in the room with the 3 buttons.
+; Controla el valor de wJabuWaterLevel dependiendo de los botones pulsados.
 miscPuzzles_subid0a:
 	ld e,Interaction.state
 	ld a,(de)
@@ -560,100 +561,121 @@ miscPuzzles_subid0a:
 	.dw @state2
 	.dw @state3
 
+;Inicialización. Carga wActiveTriggers en var30 y el estado de los botones en wSwitchState.
 @state0:
 	ld a,(wActiveTriggers)
 	ld e,Interaction.var30
-	ld (de),a
+	ld (de),a ;carga wActiveTriggers en var30
 
 	ld a,(wJabuWaterLevel)
-	and $f0
-	ld (wSwitchState),a
+	and $f0 ;se queda solo con los bits altos de wJabuWaterLevel
+	ld (wSwitchState),a ;guarda los bits altos de wJabuWaterLevel en wSwitchState. Guarda el estado de los botones en el wSwitchState, vaya.
 	jp interactionIncState
 
+; Compruebas qué botón se ha pulsado. Dependiendo de cuál se drena o aumenta el nivel del agua.
 @state1:
-	; Check if a button was pressed
+	; Comprobación de si se ha pulsado un botón.
 	ld a,(wActiveTriggers)
 	ld b,a
 	ld e,Interaction.var30
 	ld a,(de)
-	xor b
-	ld c,a
-	ld a,b
-	ld (de),a
+	xor b ;se ponen en 1 los bits que han cambiado de wActiveTriggers
+	ld c,a ;se cargan esos bits cambiados en c
+	ld a,b 
+	ld (de),a ;se actualiza el var30 con los wActiveTriggers actuales
 
-	bit 7,c
-	jr nz,@drainWater
+	bit 7,c ;comprueba el bit 7 de c. Recordamos que el botón A (el que vacía de agua la mazmorra) activa el bit 7 de wActiveTriggers. Básicamente, si se pulsa
+	; ese botón, la mazmorra se drena.
+	jr nz,@drainWater ; Si es 1 el bit 7 de c, es decir, ha cambiado el bit 7 de wActiveTriggers, drena el agua.
 
-	; Ret if none pressed
-	and c
-	ret z
+	; Si wActiveTriggers nuevos AND c == 0, entonces no ha habido ningún cambio (que eso solo pasa si no se han cambiado wActiveTriggers, se podría haber comprobado
+	; c directamente creo yo).
+	and c ; Se hace a and c. Es decir, wActiveTriggers actual AND bits que habían cambiado.
+	ret z ;si no ha habido cambios, sale.
+
+	; Si sí han cambiado wActiveTriggers pero el anterior botón pulsado es el mismo, sale. Es decir, en wSwitchState tienes guardado el comportamiento de los botones
+	; si el botón C se pulsa, el wSwitchState guarda que se ha pulsado ese botón y lo guarda como pulsado. Si después pulsas
+	; el botón C otra vez, como wSwitchSatate lo tiene como pulsado, no pasa nada. Esto no se puede hacer con wActiveTriggers porque los botones se desactivan al
+	; despisarlos, poniendo a 0 de nuevo wActiveTriggers.
 	ld a,(wSwitchState)
-	and c
-	ret nz
+	and c 
+	ret nz ;si el botón ya estaba activado antes, sale.
 
-	ld a,c
-	ld hl,wSwitchState
+	;Si se ha pulsado un botón que no estaba pulsado antes y no es el de drenar el agua, es decir, si se han pulsado el botón B o C (los que suben un nivel
+	; el nivel del agua), sigue.
+	;Actualizas wSwitchState.
+	ld a,c ;cargas el bitmask que indica qué botón ha cambiado (4 para el C, 5 para el B).
+	ld hl,wSwitchState 
 	or (hl)
-	ld (hl),a
-	and $f0
-	ld b,a
-	ld hl,wJabuWaterLevel
-	ld a,(hl)
-	and $03
-	inc a
-	or b
-	ld (hl),a
+	ld (hl),a ;activas el bit de wSwitchState correspondiente al bótón que se ha activado
+
+	;Actualizas wJabuWaterLevel con wSwitchState en la parte alta y nivel de agua actual + 1 en la parte baja.
+	and $f0 ;te quedas solo con la parte alta de ese byte.
+	ld b,a ;cargas eso en b
+	ld hl,wJabuWaterLevel 
+	ld a,(hl) ;cargas el nivel del agua en a
+	and $03 ;te quedas solo con los bits bajos
+	inc a ;sumas 1, es decir, subes un piso el nivel del agua.
+	or b 
+	ld (hl),a ;actualizas wJabuWaterLevel ya con la información de botones en los bits altos y la información del nivel del agua en los bits bajos.
 .ifndef REGION_JP
-	ld a,<TX_1209
+	ld a,<TX_1209 ;texto que indica que el agua sube
 .endif
 	jr @beginCutscene
 
+; Pone wJabuWaterLevel a 0 (tanto botones como nivel del agua) y wSwitchState a 0.
 @drainWater:
 	ld a,(wJabuWaterLevel)
 	and $07
-	ret z
+	ret z ; si se ha pulsado el botón A pero no hay agua en la mazmorra, sale, no hace nada.
 	xor a
-	ld (wJabuWaterLevel),a
-	ld (wSwitchState),a
+	ld (wJabuWaterLevel),a ;se pone a 0 el wJabuWaterLevel
+	ld (wSwitchState),a ;se pone a 0 el estado de los botones
 .ifndef REGION_JP
-	ld a,<TX_1208
+	ld a,<TX_1208 ;carga un texto de "Se ha drenado el agua"
 .endif
 
+; Desactiva Link y demás y para la música.
 @beginCutscene:
 .ifndef REGION_JP
 	ld e,Interaction.var31
-	ld (de),a
+	ld (de),a ;carga en var31 el texto
 .endif
 
+	;desactiva interacciones y a Link
 	ld a,DISABLE_ALL_BUT_INTERACTIONS | DISABLE_LINK
 	ld (wDisabledObjects),a
-	ld (wMenuDisabled),a
+	ld (wMenuDisabled),a 
 
 	ld e,Interaction.counter1
 	ld a,60
-	ld (de),a
+	ld (de),a ;carga counter1 a 60
 
-	ld a,SNDCTRL_STOPMUSIC
-	call playSound
+	ld a,SNDCTRL_STOPMUSIC 
+	call playSound ;para la música actual
 	jp interactionIncState
 
+; Espera ciertos frames, se agita la pantalla y suena agua.
 @state2:
 	call interactionDecCounter1
-	ret nz
+	ret nz ;espera 60 frames después de la cutscene.
 
 	ld a,$f0
-	ld (hl),a
-	call setScreenShakeCounter
-	ld a,SND_FLOODGATES
-	call playSound
+	ld (hl),a ;se recarga el counter1
+	call setScreenShakeCounter ;tiembla la pantalla
+	ld a,SND_FLOODGATES 
+	call playSound ;sonido de agua
 	jp interactionIncState
 
+; Espera ciertos frames, muestra un texto, reactiva Link y demás y la música.
 @state3:
 	call interactionDecCounter1
-	ret nz
+	ret nz ;espera a que termine counter1
 
 	ld l,Interaction.state
-	ld (hl),$01
+	ld (hl),$01 ;vuelve al state1
+
+	;reactivas interacciones, Link y demás.
 	xor a
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
@@ -665,12 +687,12 @@ miscPuzzles_subid0a:
 	ld l,Interaction.var31
 	ld c,(hl)
 .endif
-	call showText
+	call showText ;se muestra el texto de agua ha subido o se ha drenado
 
 	ld a,SNDCTRL_STOPSFX
 	call playSound
 	ld a,(wActiveMusic)
-	jp playSound
+	jp playSound ;vuelve la música
 
 
 

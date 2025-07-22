@@ -635,16 +635,18 @@ tileReplacement_group2Mapf7:
 tileReplacement_group5Map4c:
 	ld a,(wJabuWaterLevel)
 	and $07
-	ret z
+	ret z ; si el wJabuWaterLevel es 0, es decir, no hay agua en ningún piso, sale.
 
+	;si hay agua en el piso inferior, sigue
 	ld hl,@rect
 	call fillRectInRoomLayout
 
 	; Staircase going down
-	ld l,$57
-	ld (hl),$45
+	ld l,$57 ;cambia a la posición (5,7)
+	ld (hl),$45 ;coloca el tileindex 45, una escalera.
 	ret
 
+; define un rectángulo de 5x5 de tileindex a2 que empieza su esquina superior izquierda en (3,5)
 @rect:
 	.db $35 $05 $05 $a2
 
@@ -666,17 +668,18 @@ tileReplacement_group5Map4d:
 ; level is correct.
 tileReplacement_group5Map5c:
 	ld a,(wDungeonFloor)
-	ld b,a
+	ld b,a ; b = wDungeonFloor.
 	ld a,(wJabuWaterLevel)
-	and $07
-	cp b
-	ret nz
-
+	and $07 ; te quedas con los tres bits bajos que indican el nivel del agua
+	cp b ; comparas el nivel del agua con el número del piso
+	ret nz ; si el número del piso = nivel del agua entonces hay agua en el piso justo inferior, así que la plataforma está en ese piso en cuestión.
+	
+	; si el piso = nivel del agua, pone la plataforma en ese piso porque hay agua justo en el piso inferior.
 	ld de,@platformRect
 	jp drawRectInRoomLayout
 
 @platformRect:
-	.db $35 $05 $05
+	.db $35 $05 $05 ; empieza en la (3,5) y ocupa 5x5.
 	.db $c5 $c3 $c3 $c3 $c6
 	.db $c2 $a0 $a0 $a0 $c4
 	.db $c2 $a0 $10 $a0 $c4
