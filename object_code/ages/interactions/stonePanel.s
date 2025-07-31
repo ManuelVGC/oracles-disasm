@@ -19,9 +19,9 @@ interactionCode7b:
 	call loadPaletteHeader
 	call getThisRoomFlags
 	and $40
-	jr nz,@initializeOpenedState
+	jr nz,@initializeOpenedState ; Si el bit 6 de las roomflags es 1 quiere decir que ya se abrieron las puertas así que se inicializan directamente como abiertas.
 
-	; Closed
+	; Si no, se inicializan como cerradas.
 	ld hl,wRoomCollisions+$66
 	ld a,$0f
 	ldi (hl),a
@@ -29,6 +29,7 @@ interactionCode7b:
 	ld (hl),a
 	jp interactionIncState
 
+; Si el bit 6 de las roomflags es 1 quiere decir que ya se abrieron las puertas así que se inicializan directamente como abiertas.
 @initializeOpenedState:
 	ld e,Interaction.state
 	ld a,$03
@@ -137,9 +138,9 @@ interactionCode7b:
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 	ld hl,wActiveTriggers
-	res 7,(hl)
+	res 7,(hl) ;pone de nuevo el bit 7 de wActiveTriggers a 0 después de abrirse
 	call getThisRoomFlags
-	set 6,(hl)
+	set 6,(hl) ;pone le bit 6 de las roomflags a 1, indicando que ya están las puertas abiertas
 
 	call @updateSolidityUponOpening
 	ld a,(wActiveMusic)

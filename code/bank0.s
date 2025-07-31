@@ -7405,20 +7405,23 @@ objectGetRelatedObject1Var:
 	ld l,Object.relatedObj1
 	jr ++
 
-;;
+;; Devuelve en hl el campo que le pasamos en a del objeto guardado en relatedObj2.
+; Es decir, si por ejemplo a = Object.enabled, entonces hl devolvera objetoQueEstáEnRelatedObj2.enabled.
 objectGetRelatedObject2Var:
-	ld l,Object.relatedObj2
+	ld l,Object.relatedObj2 ;offset que apunta al campo relatedObj2
 ++
-	ld h,a
-	ldh a,(<hActiveObjectType)
-	add l
-	ld e,a
-	ld a,(de)
-	add h
-	ld l,a
-	inc e
-	ld a,(de)
-	ld h,a
+	ld h,a ;guarda en h el offset que le pasamos en a
+
+	ldh a,(<hActiveObjectType) ;a apunta a la estructura de la llave
+	add l ;apuntamos ahora al relatedObj2 de la llave
+	ld e,a ;e apunta al byte bajo de llave.relatedObj2
+	ld a,(de) ;a = valor del byte bajo de llave.relatedObj2
+	add h ;le añadimos el offset que le pasábamos en a al byte bajo. Es decir, apuntamos al campo que le pasábamos con a.
+	ld l,a ;carga en l el byte bajo de llave.relatedObj2 con el offset ya sumado.
+
+	inc e ; e apunta al byte alto de llave.relatedObj2
+	ld a,(de) ;a = valor del byte alto de llave.relatedObj2
+	ld h,a ;carga en h el byte alto de llave.relatedObj2
 	ret
 
 ;;

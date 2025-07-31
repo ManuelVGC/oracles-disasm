@@ -794,44 +794,47 @@ miscPuzzles_subid0d:
 	.dw @state1
 	.dw @state2
 
+; Hace las comprobaciones de wActiveTriggers y del número de antorchas encendidas y si las pasa se agita la pantalla y suena sonido de puerta abriéndose.
 @state0:
 	call getThisRoomFlags
 	and ROOMFLAG_40
-	jp nz,interactionDelete
+	jp nz,interactionDelete ;si el roomflag40 ya está activado, la interacción ya se ha hecho, sale.
 
 	ld a,(wNumTorchesLit)
 	cp $01
-	ret nz
+	ret nz ;si no hay una antorcha encendida, sale.
 	ld hl,wActiveTriggers
 	ld a,(hl)
 	cp $07
-	ret nz
+	ret nz ;comprueba que los tres bits bajos de wActiveTriggers estén activos (estos los activan los botones de la sala). 
 
 	ld e,Interaction.counter1
 	ld a,30
-	ld (de),a
-	ld a,$08
-	call setScreenShakeCounter
+	ld (de),a ;counter1 = 30
+	ld a,$08 
+	call setScreenShakeCounter ;haces temblar la pantalla
 	ld a,SND_DOORCLOSE
-	call playSound
+	call playSound ;sonido de puerta cerrándose
 	jp interactionIncState
 
+; Espera unos frames y comprueba si todos los botones siguen pulsados, de ser así activa el bit 7 de wActiveTriggers, lo cual abre la tumba.
 @state1:
 	call interactionDecCounter1
-	ret nz
+	ret nz; espera counter1
 
 	ld hl,wActiveTriggers
 	ld a,(hl)
 	cp $07
-	jr z,++
+	jr z,++ ;checkea que los tres bits inferiores estén a 1 y si es así salta
 	ld e,Interaction.state
 	xor a
-	ld (de),a
+	ld (de),a ;vuelve al state 0 si se ha despulsado algún botón (alguno de los tres bits inferiores de wActiveTriggers está a 0)
 	ret
 ++
-	set 7,(hl)
+	set 7,(hl) ;pone el bit 7 de wActiveTriggers a 1.
 	jp interactionIncState
 
+; Cuando desactive el bit 7 las puertas de la tumba creas las escaleras
 @state2:
 	; Wait for bit 7 of wActiveTriggers to be unset by another object?
 	ld a,(wActiveTriggers)
@@ -841,12 +844,12 @@ miscPuzzles_subid0d:
 	ld a,SND_SOLVEPUZZLE
 	call playSound
 	ld b,INTERAC_PUFF
-	call objectCreateInteractionWithSubid00
+	call objectCreateInteractionWithSubid00 ;crea el puff
 
 	call objectGetTileAtPosition
-	ld c,l
+	ld c,l 
 	ld a,TILEINDEX_NORTH_STAIRS
-	call setTile
+	call setTile ;coloca el tileindex de escaleras. Los parámetros que le pasas son c = position of tile, a = new tileindex.
 	jp interactionDelete
 
 
