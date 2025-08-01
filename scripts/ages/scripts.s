@@ -9266,10 +9266,12 @@ greatFairySubid0Script:
 ; INTERAC_SLATE_SLOT
 ; ==================================================================================================
 slateSlotScript:
-	rungenericnpc TX_5111
+	rungenericnpc TX_5111 ;texto de "algo va en este agujero"
+	; no se sigue ejecutando el código de debajo, no funciona así en este lenguaje.
 
 slateSlotScript_placeSlate:
-	asm15 scriptHelp.slateSlot_placeSlate
+	asm15 scriptHelp.slateSlot_placeSlate ;cambia el tile por tablilla puesta, enciende las antorchas correspondientes, decrementa el número de tablillas que
+	; quedan por poner y actualiza los flags de la room.
 	enableinput
 	scriptend
 

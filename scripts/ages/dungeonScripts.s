@@ -196,7 +196,7 @@ ancientTombScript_spawnNorthStairsWhenTrigger0Active:
 
 ancientTombScript_retractWallWhenTrigger0Active:
 	stopifroomflag40set
-	checkmemoryeq wActiveTriggers, $01
+	checkmemoryeq wActiveTriggers, $01 ; bit 0 activo = 0000 0001 = $01.
 	disableinput
 	wait 30
 	asm15 scriptHelp.ancientTomb_startWallRetractionCutscene

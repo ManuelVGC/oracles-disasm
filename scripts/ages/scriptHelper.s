@@ -8390,7 +8390,8 @@ slateSlot_7b21:
 	ld (wTmpcfc0.genericCutscene.cfc1),a
 	ret
 
-;;
+;; Coloca el tile de tablilla puesta, cambia los roomflags indicando que la tablilla está puesta, decrementa el número de tablillas que tienes y
+; enciende las antorchas correspondientes (las que están en el mismo lado que la tablilla que has colocado).
 slateSlot_placeSlate:
 	ld a,SND_DOORCLOSE
 	call playSound

@@ -798,7 +798,7 @@ miscPuzzles_subid0d:
 @state0:
 	call getThisRoomFlags
 	and ROOMFLAG_40
-	jp nz,interactionDelete ;si el roomflag40 ya está activado, la interacción ya se ha hecho, sale.
+	jp nz,interactionDelete ;si el roomflag40 ya está activado, la interacción ya se ha hecho, la borra.
 
 	ld a,(wNumTorchesLit)
 	cp $01
@@ -862,18 +862,20 @@ miscPuzzles_subid0e:
 @state0:
 	call getThisRoomFlags
 	bit ROOMFLAG_BIT_40,(hl)
-	jp nz,interactionDelete
+	jp nz,interactionDelete ;si el roomflag40 está activado, la interacción ya se ha hecho, la borra
 
 	; Wait for all slates to be put in
+	; Comprueba los roomflags para saber si están puestas todas las tablillas
 	ld a,(hl)
 	and ROOMFLAG_01|ROOMFLAG_02|ROOMFLAG_04|ROOMFLAG_08
 	cp  ROOMFLAG_01|ROOMFLAG_02|ROOMFLAG_04|ROOMFLAG_08
 	ret nz
 
-	ld hl,wActiveTriggers
-	set 7,(hl)
+	ld hl,wActiveTriggers 
+	set 7,(hl) ;si están todas las tablillas puestas activa el bit 7 de wActiveTriggers para que se abran los STONE PANEL.
 	jp interactionIncState
 
+; Cuando el stone panel vuelve a poner a 0 el bit 7 de wActiveTriggers, spawnea una escalera en la posición de la interacción.
 @state1:
 	; Wait for another object to unset bit 7 of wActiveTriggers?
 	ld a,(wActiveTriggers)
