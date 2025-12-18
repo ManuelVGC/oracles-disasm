@@ -1,8 +1,17 @@
 ; These are a bunch of scripts used by INTERAC_DUNGEON_SCRIPT.
 
+; Se ejecuta una instrucción cada frame. Tiene un pointer que cada frame ejecuta una instrucción y avanza a la siguiente o se queda bloqeuado (como en los check o
+; los wait). Cuando llega a la instrucción scriptend, se destruye.
+
+; Los dungeonScripts se usan si quiero reaccionar cuando se cumpla una condición.
+
+
 dungeonScript_spawnChestOnTriggerBit0:
 	stopifitemflagset
-	checkflagset $00, wActiveTriggers
+	checkflagset $00, wActiveTriggers ; cada frame hace este check hasta que sea cierto, es decir, se queda aquí bloqueado hasta que esta instrucción se cumpla,
+	; esto se veía bien por ejemplo en los diálogos y movimientos de los personajes en las cutscenes, que se coordinaban:
+	; checkmemoryeq wTmpcfc0.genericCutscene.cfd0, $04 ;si cfd0 es 4 sigue el código. cfd0 lo pone Nayru a 4 cuando terminan ambos el diálogo con Link.
+	; Por ejemplo, ahí Ralph esperaba a que Nayru hubiese cambiado la cfd0 para seguir su script. 
 	scriptjump spawnChestAfterPuff
 
 
@@ -15,7 +24,7 @@ spawnChestAfterPuff:
 	createpuff
 	wait 15
 	settilehere TILEINDEX_CHEST
-	scriptend
+	scriptend ;scriptend hace que se destruya el script, no se vuelve a ejecutar nunca más.
 
 makuPathScript_spawnDownStairsWhenEnemiesKilled:
 	stopifroomflag80set

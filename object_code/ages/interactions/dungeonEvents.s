@@ -1,6 +1,18 @@
 ; ==================================================================================================
 ; INTERAC_DUNGEON_EVENTS
 ; ==================================================================================================
+
+; Los dungeonEvents ejecutan todo su código cada frame. Cada frame vuelven a ejecutarse desde el principio por lo que se usan cosas como los contadores o los states.
+
+; Los contadores por ejemplo ayudan a que no se ejecute más código hasta que no se llega a X valor. Por ejemplo, cada frame se ejecuta el código y hace una
+; comprobación de si el contador es 0, sino, decrementa el contador y sale. Siguiente frame, se ejecuta desde el principio, y lo mismo, hasta que en un frame se
+; ejecute desde el principio y el contador ya sea 0 y por tanto siga el código.
+; Los states por otra parte ayudan para que el código entre dentro de otra parte nueva. Por ejemplo, primer frame se ejecuta desde el principio y se entra en un código
+; dependiendo del state, si es 0 entra en el state0 e imagínate que al final se cambia el valor de state por 1.
+; Siguiente frame, se ejecuta desde arriba el código y ahora entra en vez de en state0 en state1, y así.
+
+; Los dungeonEvents se usan si quiero comprobar algo cada frame.
+
 interactionCode21:
 	ld e,Interaction.subid
 	ld a,(de)
