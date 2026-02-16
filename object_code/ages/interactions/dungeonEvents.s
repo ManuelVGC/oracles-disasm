@@ -394,8 +394,13 @@ interaction21_subid0d:
 
 	ld hl,mainScripts.moonlitGrottoScript_brokeCrystal ;animación de shake de la pantalla, muestra texto de cristal roto y activa el bit 6 de los flags de la sala.
 	call interactionSetScript
-	call interactionRunScript 
-	jp interactionIncState ;entra en state2, que sigue ejecutando el script de moonlitGrottoScript_brokeCrystal. 
+	call interactionRunScript ;ejecuta el script hasta el primer wait, momento en el que retorna del call. 
+	jp interactionIncState ;entra en state2, que sigue ejecutando el script de moonlitGrottoScript_brokeCrystal. Lo ejecuta todo porque lo llama frame tras frame
+	; decrementando los wait y siguiendo el código hasta el final.
+	; Parece que teóricamente podrías quitar el interactionRunScript de este state1 pero quizá por temas de quitarle el control al jugador un frame antes o algo así
+	; pues lo hacen así. Haciendo el runScript en state1 se quita el input de Link en este frame, no en el siguiente cuando se ejecute state2.
+	; Parece que en el juego lo suelen hacer así, ejecutan el principio del script en el mismo frame donde se triggea y luego lo siguen ejecutando frame a frame,
+	; en vez de ejecutarlo frame a frame directamente pero desde el frame siguiente al que se triggea.
 
 ; si todos los cristales se han roto, se hace una animación con sonidos, se muestra un texto y cambia el valor de wSpinnerState a 0.
 ; estos bits de wSwitchState los cambia a 1 el handler de la primera mazmorra (subid18) cuando se van poniendo a 1 el bit 6 de las salas donde hay cristales.
