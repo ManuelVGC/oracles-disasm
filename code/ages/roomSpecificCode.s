@@ -87,12 +87,13 @@ roomSpecificCode1:
 	ret nz
 ---
 	; Create spinner object
-	call getFreeInteractionSlot
+	call getFreeInteractionSlot ;reserva espacio para la interacción y si hay, le concede un adress para ella, la crea digamos.
 	ret nz
-	ld (hl),$7d
-	ld l,Interaction.yh
-	ld (hl),$57
-	ld l,Interaction.xh
+	ld (hl),$7d ;la dirección de la interacción es h y l, siendo h la propia interacción y l los diferentes campos del struct que es la interacción.
+	; Como al principio se empieza con el principio de la interacción en memoria pues el l es el primer campo, el id, así que le asignamos el id del spinner.
+	ld l,Interaction.yh ;apuntamos ahora al campo correspondiente a la coordenada Y
+	ld (hl),$57 ;asignamos a esa Y de esa interacción el valor $57
+	ld l,Interaction.xh ;y lo mismo para la X
 	ld (hl),$01
 	ret
 

@@ -3,7 +3,7 @@ applyRoomSpecificTileChanges:
 	ld a,(wActiveRoom)
 	ld hl,roomTileChangerCodeGroupTable
 	call findRoomSpecificData
-	ret nc ;si encuentra la sala en la lista salta, sino, sale
+	ret nc ;si encuentra la sala en la lista salta, sino, sale. Funciona como en roomSpecificCode.s.
 	rst_jumpTable
 	.dw tileReplacement_group5Mapf5 ; $00
 	.dw tileReplacement_group4Map1b ; $01
@@ -377,6 +377,10 @@ tileReplacement_group4Map52:
 	ld a,$60
 	ld (wLoadingRoom),a
 	callab loadRoomLayout ;carga directamente la sala de arriba del spinner.
+	; Esto carga la sala del spinner de arriba normal, es decir, la que está en Lynnalab, con los tiles del spinner, aunque entres en la sala esa antes
+	; y ya no estén los tiles del spinner porque has roto los cristales y se ha ejecutado el código de tileReplacement_group4Map60, eso es como una máscara
+	; de cada vez que entras a la sala, pero la sala sigue siendo la del Lynnalab en verdad, lo que pasa es que se ejecuta ese código de cambiar los tiles
+	; todo el rato así que ya nunca la ves con el spinner.
 	ret
 
 ;;

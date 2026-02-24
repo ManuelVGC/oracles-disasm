@@ -186,21 +186,20 @@ interaction21_subid19:
 ; blue. The bitmask to use is X.
 interaction21_subid07:
 
-	;Mirar si algún tile en la misma Y que la interacción es una baldosa de color.
+	;Mirar si algún tile en la posición de la sala determinada por la Y de la interacción
 	ld e,Interaction.yh
 	ld a,(de) ; a será igual a la Y de la interacción
 	ld c,a
 	ld b,>wRoomLayout
 
-	;se mira la fila c en el RoomLayout que es algo como:
 	;wRoomLayout = [
-		;$00, $00, $0B, $0B, $0B, $00, $00, $00,  ; primera fila de tiles. Cada dígito es un tile index.
+		;$00, $00, $0B, $0B, $0B, $00, $00, $00,  ; Cada dígito es un tile index.
 		;$00, $00, $00, $00, $00, $00, $00, $00,
 		; ...
 		;$00, $00, $0D, $0C, $0B, $00, $00, $00,  
 		;...
 	;]
-	ld a,(bc) ; a apunta a la fila de tiles donde está la interacción
+	ld a,(bc) ; a es el valor del tileindex que se encuentra en la posición bc.
 	sub TILEINDEX_RED_TOGGLE_FLOOR
 	cp $03 ;mira si hay algún tile de tipo toggle floor
 	ret nc ;si no es tile de toggle floor, la función sale
@@ -264,6 +263,7 @@ interaction21_subid0a:
 
 	ld hl,wToggleBlocksState
 	res 4,(hl) ;borra el bit 4 de wToggleBlockState porque es el que se activará cuando golpees el orbe que se crea más abajo.
+	; La intrucción res pone el bit a 0.
 
 	ld hl,objectData.moonlitGrotto_orb
 	call parseGivenObjectData ;crea el orbe anterior. El orbe se crea en la posición (7,5) y el subid es 4, indicando que ese será el bit de wToggleBlocksState
@@ -274,7 +274,7 @@ interaction21_subid0a:
 
 @initialized:
 	ld hl,wToggleBlocksState
-	bit 4,(hl)
+	bit 4,(hl) ; La intrucción bit comprueba el valor del bit que le indiquemos
 	ret z ;mientras que el orbe no esté golpeado, sale
 
 	
