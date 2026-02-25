@@ -31,8 +31,16 @@ interactionCode23:
 	ld b,>wRoomLayout
 
 	ld a,(bc) ;checkea si el tile que está en Y es un tile de puente
-	sub TILEINDEX_VERTICAL_BRIDGE
-	sub $06
+
+	; Estos sub son una comprobación de rango. Lo que se hace aquí es comprobar si el tileindex de la posición donde se encuentra la interacción está
+	; entre TILEINDEX_VERTICAL_BRIDGE y TILEINDEX_VERTICAL_BRIDGE + 5 (que serían el resto de tileindex donde hay puente). Si el tileindex que está en esa
+	; posición del mapa está dentro de ese rango, entonces carry = 1.
+	sub TILEINDEX_VERTICAL_BRIDGE ;tileindex que hay en la posición - TILEINDEX_VERTICAL_BRIDGE. Si el resultado da negativo, entonces c=1 y el valor final
+	; queda muy grande, por ejemplo si el resultado de tileindex que hay en la posición - TILEINDEX_VERTICAL_BRIDGE es -1 esto es FF (da la vuelta, el número
+	; anterior del 0 es el FF).
+	sub $06 ;a lo que salga de la operación anterior le restas 6. Si el tileindex de la posición es un tileindex de puente entonces el resultado de la
+	; anterior operación será como mucho de 5 (se aleja como mucho 6 del TILEINDEX_VERTICAL_BRIDGE) así que si le restas 6 te dará siempre negativo. Si el número
+	; de antes es mayor que TILEINDEX_VERTICAL_BRIDGE + 5 entonces el tile que está en la posición no es un tileindex de puente, se pone el carry a 0.
 
 	ld a,$02 ;asumimos que el tile es un tile de puente así que a = 2.
 	jr c,+ ; si el tile era efectivamente de puente salta a +
@@ -59,8 +67,8 @@ interactionCode23:
 	ret z ; si el bit que nos importa de wSwitchState no ha cambiado, sale.
 	ld hl,@bridgeCreationData 
 
-; lee los tiles que se deberán modificar dependiendo de la X de la interacción y apunta al primero. Además, settea un contador para que no se creen todos de golpe y un valor
-; que indica porque posición de la lista de tiles vamos leyendo
+; lee los tiles que se deberán modificar dependiendo de la X de la interacción y apunta al primero. Además, settea un contador para que no se creen todos de golpe y
+; un valor que indica por qué posición de la lista de tiles vamos leyendo.
 @startLoadingBridgeData:
 	ld e,Interaction.var30
 	ld a,(wSwitchState)
@@ -69,19 +77,22 @@ interactionCode23:
 	ld e,Interaction.xh
 	ld a,(de)
 	rst_addDoubleIndex ;dependiendo de la X de la interacción elige una de las listas de tiles de creación del puente
+
+	; Estas tres instrucciones son para conseguir la dirección del @creation que se haya elegido según la X de la interacción.
 	ldi a,(hl)
 	ld h,(hl)
 	ld l,a
 
-	ldi a,(hl)
+	ldi a,(hl) ; aquí hace a = tileindex que se va a crear y se apunta al siguiente valor de la tabla de @creation que sea
 	ld e,Interaction.var31 
 	ld (de),a ;se lee el primer tile de la lista y se guarda en var31
+
 	ld e,Interaction.relatedObj2 ;relatedObj2 se usa para guardar la dirección actual en la lista de tiles que estamos leyendo.
 	ld a,l
-	ld (de),a
+	ld (de),a ; se guarda l en la parte baja de relatedObj2
 	inc e
-	ld a,h
-	ld (de),a
+	ld a,h 
+	ld (de),a ; se guarda h en la parte alta de relatedObj2
 
 	;se usa un contador para que los tiles vayan apareciendo poco a poco y no todos de golpe
 	ld a,$0a
