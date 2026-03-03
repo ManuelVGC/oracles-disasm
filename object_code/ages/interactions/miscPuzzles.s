@@ -1102,7 +1102,8 @@ miscPuzzles_subid19:
 ; Trigger off, waiting for it to be pressed
 @state1:
 	ld a,(wActiveTriggers)
-	rrca
+	rrca ;rotar los bits uno hacia la derecha. Aquí el carry será el bit que salga. En este caso estamos esperando a que el botón se pulse (es subid 80 así
+	; que el bit de wActiveTriggers que activa al pulsarse es el bit 0).
 	ret nc
 	ld e,Interaction.counter1
 	ld a,$08
