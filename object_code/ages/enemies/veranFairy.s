@@ -11,10 +11,10 @@
 ;   var38: Timer to stay still after doing a movement pattern
 ; ==================================================================================================
 enemyCode06:
-	jr z,@normalStatus
-	sub ENEMYSTATUS_NO_HEALTH
-	ret c
-	jr nz,@justHit
+	jr z,@normalStatus ;si status = 0, entonces entra en normalStatus. El normal es 0 por enemyStates.s. 
+	sub ENEMYSTATUS_NO_HEALTH 
+	ret c ;sale para status < de ENEMYSTATUS_NO_HEALTH
+	jr nz,@justHit ;si el status != ENEMYSTATUS_NO_HEALTH (al hacer el sub ENEMYSTATUS_NO_HEALTH si el status fuese igual daría 0 y se activaría el flag z) salta a justHit
 
 	; No health
 	ld e,Enemy.invincibilityCounter
@@ -56,19 +56,21 @@ enemyCode06:
 	.dw veranFairy_state4
 	.dw veranFairy_state5
 
+
+;inicialización
 veranFairy_state0:
 	ld a,ENEMY_VERAN_FAIRY
-	ld (wEnemyIDToLoadExtraGfx),a
+	ld (wEnemyIDToLoadExtraGfx),a 
 	call ecom_incState
 	ld l,Enemy.counter1
-	ld (hl),60
-	ld l,Enemy.speed
-	ld (hl),SPEED_140
+	ld (hl),60 ;pone un contador a 96
+	ld l,Enemy.speed 
+	ld (hl),SPEED_140 ;setea speed
 	ld l,Enemy.var30
-	dec (hl)
-	ld a,$02
-	call enemySetAnimation
-	jp objectSetVisible82
+	dec (hl) ;var30 = var30 - 1
+	ld a,$02 
+	call enemySetAnimation ;setea animación
+	jp objectSetVisible82 ;setea tipo de visibilidad $82
 
 ; Cutscene just prior to fairy form
 veranFairy_state1:
@@ -89,32 +91,37 @@ veranFairy_state1:
 	.dw @substateB
 	.dw @substateC
 
+; parpadeo del principio
 @substate0:
-	call ecom_decCounter1
-	jp nz,ecom_flickerVisibility
-	ld (hl),$08
-	ld l,e
-	inc (hl) ; [substate]
+	call ecom_decCounter1 ;aquí queda apuntando el hl al enemy.counter1
+	jp nz,ecom_flickerVisibility ;durante 96 frames hace un flicker de la visibilidad
+	ld (hl),$08 ;se setea el counter1 a 8
+	ld l,e ;l a apunta al substate
+	inc (hl) ; substate = substate + 1
 	jp objectSetVisible83
 
+; muestra primer texto después de parpadear
 @substate1:
 	call ecom_decCounter1
 	ret nz
 	ld l,e
-	inc (hl) ; [substate]
+	inc (hl) ; substate = substate + 1
 	ld bc,TX_560f
 	jp showText
 
+; cambia la animación del personaje
 @substate2:
-	call ecom_incSubstate
+	call ecom_incSubstate ; substate = substate + 1
 	ld l,Enemy.counter1
-	ld (hl),30
+	ld (hl),30 ;setea counter a 48 
 	ld a,$04
-	jp enemySetAnimation
+	jp enemySetAnimation ;setea una nueva animación
 
+; creación y aparición de rayos y tal
 @substate3:
-	ld c,$33
+	ld c,$33 ;lugar donde caerá el rayo, lo usa más tarde en setShortPosition_paramC
 
+; define un contador que se usa para espaciar los rayos
 @strikeLightningAfterCountdown:
 	call ecom_decCounter1
 	ret nz
@@ -122,6 +129,7 @@ veranFairy_state1:
 	ld l,e
 	inc (hl) ; [substate]
 
+; crea un rayo
 @strikeLightning:
 	call getFreePartSlot
 	ret nz
@@ -129,22 +137,27 @@ veranFairy_state1:
 	ld l,Part.yh
 	jp setShortPosition_paramC
 
+; espera y cae rayo en la posición $7b
 @substate4:
 	ld c,$7b
 	jr @strikeLightningAfterCountdown
 
+; espera y cae rayo en la posición $55
 @substate5:
 	ld c,$55
 	jr @strikeLightningAfterCountdown
 
+; espera y cae rayo en la posición $3b
 @substate6:
 	ld c,$3b
 	jr @strikeLightningAfterCountdown
 
+; espera y cae rayo en la posición $73
 @substate7:
 	ld c,$73
 	jr @strikeLightningAfterCountdown
 
+; espera y cae rayo en la posición $59 y luego fade a blanco
 @substate8:
 	call ecom_decCounter1
 	ret nz
@@ -156,82 +169,85 @@ veranFairy_state1:
 
 ; Remove pillar tiles
 @substate9:
-	ld b,$0c
+	ld b,$0c ; b = 12, que son el número de tiles de pilar que hay que sustituir
 	ld hl,@pillarPositions
 @loop
-	push bc
-	ldi a,(hl)
-	ld c,a
-	ld a,$a5
-	push hl
-	call setTile
-	pop hl
+	push bc ;guarda b y c en la pila para usarlos ahora y que no se pierdan sus valores
+	ldi a,(hl) ;carga el valor de la primera posición en a y apunta a la siguiente
+	ld c,a ; c = a = valor de la primera posición
+	ld a,$a5 ;tileindex que se va a poner
+	push hl ;guarda hl para recuperarlo después
+	call setTile ;setea el tile en la posición que toca
+	pop hl 
 	pop bc
-	dec b
-	jr nz,@loop
+	dec b ; se decrementa el número de tiles que quedan por sustituir
+	jr nz,@loop ;cuando no queden tiles que sustituir se termina el bucle
 	jp ecom_incSubstate
 
 @pillarPositions:
 	.db $23 $33 $63 $73 $45 $55 $49 $59
 	.db $2b $3b $6b $7b
 
-; Spawn mimics
+; Spawn mimics y cambia la forma de Veran a la forma fairy
 @substateA:
-	ld b,$04
+	ld b,$04 ; número de mimics
 	ld hl,@mimicPositions
 
 @nextMimic:
-	ldi a,(hl)
-	ld c,a
+	ldi a,(hl) ;se carga en a una posición de la lista de posiciones donde irán los mimics
+	ld c,a ; c = a
 	push hl
 	call getFreeEnemySlot
 	jr nz,++
 	ld (hl),ENEMY_LINK_MIMIC
 	ld l,Enemy.yh
-	call setShortPosition_paramC
+	call setShortPosition_paramC ;se pone el mimic creado en y = c = a = posición de la lista de posiciones de mimicPositions
 ++
 	pop hl
-	dec b
-	jr nz,@nextMimic
+	dec b ;se decrementa el número de mimic que faltan por spawnear
+	jr nz,@nextMimic ;hasta que no se hayan spawneado 4 mimics no sigue el código
 
 	call ecom_incSubstate
 	ld l,Enemy.counter1
-	ld (hl),30
+	ld (hl),30 ;counter = 48
 
+	; se limpian los flags de la OAM
 	ld l,Enemy.oamFlagsBackup
 	xor a
-	ldi (hl),a
+	ldi (hl),a 
 	ld (hl),a
 
 	ld l,Enemy.zh
-	dec (hl)
-	call objectSetVisible83
+	dec (hl) ;se mueve un poco Veran hacia abajo
+	call objectSetVisible83 ; se pone visibilidad 83
 	ld a,$05
-	call enemySetAnimation
+	call enemySetAnimation ;nueva animación
 	ld a,$04
-	jp fadeinFromWhiteWithDelay
+	jp fadeinFromWhiteWithDelay ;fade desde blanco
 
 @mimicPositions:
 	.db $33 $73 $3b $7b
 
+; cuando termina el fade desde blanco espera un poco y muestra un texto
 @substateB:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
-	call ecom_decCounter1
-	ret nz
+	ret nz ;cuando termine el fade sigue el código
+	call ecom_decCounter1 
+	ret nz ;espera hasta que counter1 sea 0
 	ld l,e
-	inc (hl)
+	inc (hl) ;incrementa substate
 	ld bc,TX_5610
 	jp showText
 
+; pasa a la lucha contra el boss, devuelve el control al jugador y reproduce música de boss
 @substateC:
 	ld h,d
 	ld l,Enemy.state
-	inc (hl)
+	inc (hl) ;pasas al state2
 	ld l,Enemy.counter2
 	ld (hl),120
-	jp enemyBoss_beginBoss
+	jp enemyBoss_beginBoss ;devuelve el control al jugador y reproduce música
 
 
 ; Choosing a movement pattern and attack

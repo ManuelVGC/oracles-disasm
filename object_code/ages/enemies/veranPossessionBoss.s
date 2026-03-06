@@ -10,17 +10,20 @@
 ;   var34: Current pillar index
 ;   var35: Bit 0 set if already showed veran's "taunting" text after using switch hook
 ; ==================================================================================================
+
+
 enemyCode61:
-	jr z,@normalStatus
-	sub ENEMYSTATUS_NO_HEALTH
-	ret c
+	jr z,@normalStatus ; si está en un estado normal se salta a normalStatus. Está comprobando aquí el status del enemigo.
+	; Esto es por los valores en enemyStates.s. El 0 es normal.
+	sub ENEMYSTATUS_NO_HEALTH 
+	ret c ; si el status es cualquiera entre no health (03), just hit (04) o knockback (05) entonces sigue, sino, sale.
 
 	; ENEMYSTATUS_KNOCKBACK or ENEMYSTATUS_JUST_HIT
 	call veranPossessionBoss_wasHit
 
 @normalStatus:
-	call ecom_getSubidAndCpStateTo08
-	jr c,@commonState
+	call ecom_getSubidAndCpStateTo08 ;de aquí sale que a = state, que b = subid y que el flag c estará activado si state < 8
+	jr c,@commonState ; cuando el state sea menor que 8 hace lo mismo para todos los subid.
 	ld a,b
 	rst_jumpTable
 	.dw veranPossessionBoss_subid0
@@ -42,34 +45,36 @@ enemyCode61:
 
 veranPossessionBoss_state_uninitialized:
 	bit 1,b
-	jr nz,++
+	jr nz,++ ; si el subid es mayor o igual que 2, salta a ++
 	ld a,ENEMY_VERAN_POSSESSION_BOSS
-	ld (wEnemyIDToLoadExtraGfx),a
+	ld (wEnemyIDToLoadExtraGfx),a ;carga ciertos gráficos extra
 ++
 	ld a,b
 	add a
-	add b
+	add b ;aquí terminamos con a = subid * 3
 	ld e,Enemy.var30
-	ld (de),a
-	call enemySetAnimation
+	ld (de),a ;cargamos en var30 el subid * 3
+	call enemySetAnimation ;setea la animación para el personaje utilizando el index var30
 
 	call objectSetVisible82
 
-	ld a,SPEED_200
-	call ecom_setSpeedAndState8
+	ld a,SPEED_200 ;velocidad a la que se mueve el enemigo por la sala
+	call ecom_setSpeedAndState8 ;pone la velocidad = a y el state = 8.
 
 	ld l,Enemy.subid
 	bit 1,(hl)
-	ret z
+	ret z ; si el subid es menor que 2 sale
 
-	; For subids 2-3 only
+	; For subids 2-3 only.
+	; Se ponen tanto las oamFlags como las oamFlagsBackup a 1
 	ld l,Enemy.oamFlagsBackup
 	ld a,$01
 	ldi (hl),a ; [oamFlagsBackup]
 	ld (hl),a  ; [oamFlags]
 
+	
 	ld l,Enemy.counter1
-	ld (hl),$0c
+	ld (hl),$0c ;se carga un contador en counter1 de 0c
 
 	ld l,Enemy.speed
 	ld (hl),SPEED_80
@@ -128,25 +133,26 @@ veranPossessionBoss_nayruAmbi_state8:
 	call getFreePartSlot
 	ret nz
 
-	ld (hl),PART_SHADOW
+	ld (hl),PART_SHADOW ;guardamos en ese slot que hemos conseguido arriba la PART_SHADOW, que es una sombra que se pone debajo físicamente del objeto padre
 	ld l,Part.var03
-	ld (hl),$06 ; Y-offset of shadow relative to self
+	ld (hl),$06 ; Y-offset of shadow relative to self. Y-offset de la sombra relativo al padre.
 
-	ld l,Part.relatedObj1
-	ld a,Enemy.start
-	ldi (hl),a
-	ld (hl),d
+	ld l,Part.relatedObj1 ;en el relatedObj1 de la part hay que guardar el padre. Este relatedObj1 son dos bytes (lo pone en el struct.s, dw).
+	ld a,Enemy.start ;el enemy.start es el offset 0 dentro de la estructura de un enemigo.
+	ldi (hl),a ;offset 0 del enemigo = parte baja de relatedObj1
+	ld (hl),d ;puntero base al enemigo = parte alta relatedObj1
+	; Te queda al final que relatedObj1 apunta al enemigo actual, que ha creado la part sombra.
 
-	; Go to state 9
-	call veranPossessionBoss_nayruAmbi_beginMoving
+	; state = 9
+	call veranPossessionBoss_nayruAmbi_beginMoving ;aquí vuelve a apuntar a este enemigo (esta función hace h = d)
 
 	ld l,Enemy.var3f
-	set 5,(hl)
+	set 5,(hl) ;pone el bit 5 de var3f a 5.
 
 	ld l,Enemy.var33
-	ld (hl),$03
-	inc l
-	dec (hl) ; [var34] = $ff (current pillar index)
+	ld (hl),$03 ; var33 = 3 = número de golpes necesarios
+	inc l 
+	dec (hl) ; [var34] = $ff (current pillar index) (ambi se mueve de pilar en pilar)
 
 	xor a
 	ld (wTmpcfc0.genericCutscene.cfd0),a
@@ -424,10 +430,10 @@ veranPossessionBoss_nayruAmbi_state11:
 veranPossessionBoss_nayruAmbi_beginMoving:
 	ld h,d
 	ld l,Enemy.state
-	ld (hl),$09
+	ld (hl),$09 ;cambia el state a 9
 
 	ld l,Enemy.counter1
-	ld (hl),60
+	ld (hl),60 ;settea un contador
 	ret
 
 
@@ -466,7 +472,7 @@ veranPossessionBoss_nayru_state14:
 ; Possessed Ambi
 veranPossessionBoss_subid1:
 	ld a,(de)
-	sub $08
+	sub $08 ;de esta forma hace e - 8, y el e era el state que al llegar aquí estaba en 8, es decir, resetea el state, lo pone a 0.
 	rst_jumpTable
 	.dw veranPossessionBoss_nayruAmbi_state8
 	.dw veranPossessionBoss_nayruAmbi_state9
