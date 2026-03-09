@@ -6215,6 +6215,7 @@ checkLinkVulnerable:
 ; Check if link should respond to collisions, perhaps other things?
 ;
 ; @param[out]	cflag
+; Si las colisiones están desactivadas, es decir, si algo no permite colisiones, como que Link esté muriendo, esté en el aire, en un spinner, etc, entonces c = 0, sino, c = 1.
 checkLinkCollisionsEnabled:
 	ld a,(w1Link.collisionType)
 	rlca

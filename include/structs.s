@@ -176,7 +176,7 @@
 	; per collision.
 	var2a			db ; $2a
 
-	; When this is $00-$7f, this counts down and the object flashes red.
+	; When this is $00-$7f, this counts down and the object flashes red. Decrementa cada frame, hace que no se pueda pegar al enemigo y hace que parpadee en rojo.
 	; When this is $80-$ff, this counts up and the object is just invincible.
 	invincibilityCounter	db ; $2b
 

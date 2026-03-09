@@ -261,6 +261,9 @@ enemy73SubidData:
 ;   b2: value for Enemy.damage (how much damage it deals)
 ;   b3: value for Enemy.health
 
+; Estos valores se sacan de la tabla de arriba de enemyData. Por ejemplo, /* 0x10 */ m_EnemyData $9b $14 $0a $06. 0x10 es el enemigo Rope, vemos que el tercer parámetro
+; es 0a, así que en esta tabla la rope será el 0a.
+; Ojo que el daño del enemigo que muestra esta tabla es cuando chocas con él, no el de los proyectiles que pueda lanzar.
 extraEnemyData:
 	.db $00 $00 $00 $7f ; 0x00
 	.db $06 $06 $00 $7f ; 0x01
@@ -309,7 +312,7 @@ extraEnemyData:
 	.db $06 $06 $00 $80 ; 0x2c
 	.db $04 $04 $fe $04 ; 0x2d
 	.db $08 $06 $f8 $80 ; 0x2e
-	.db $0c $06 $f8 $27 ; 0x2f
+	.db $0c $06 $f8 $27 ; 0x2f ;Veran fairy
 	.db $08 $0a $f8 $18 ; 0x30
 	.db $0c $06 $fc $03 ; 0x31
 	.db $00 $00 $fc $7f ; 0x32

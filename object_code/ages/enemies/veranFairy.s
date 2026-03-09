@@ -17,33 +17,34 @@ enemyCode06:
 	jr nz,@justHit ;si el status != ENEMYSTATUS_NO_HEALTH (al hacer el sub ENEMYSTATUS_NO_HEALTH si el status fuese igual daría 0 y se activaría el flag z) salta a justHit
 
 	; No health
-	ld e,Enemy.invincibilityCounter
+	ld e,Enemy.invincibilityCounter ;contador que decrementa cada frame, hace que no puedas hacer daño al enemigo y hace que parpadee la visibilidad y en rojo.
 	ld a,(de)
-	ret nz
-	call checkLinkCollisionsEnabled
-	ret nc
+	ret nz ;espera a que termine el contador de invicibility.
+	call checkLinkCollisionsEnabled ;si c = 1 colisiones habilitadas. Las colisiones no estarán habilitadas por diversas razones, como por ejemplo si Link está muriendo o en el aire.
+	ret nc ;aquí sencillamente esperamos a que Link pueda colisionar.
 
 	ld a,DISABLE_LINK
 	ld (wDisabledObjects),a
 	ld (wMenuDisabled),a
 	ld h,d
 	ld l,Enemy.health
-	inc (hl)
+	inc (hl) ;le aumentamos la vida para evitar que se borre el boss uutomáticamente.
 	ld l,Enemy.state
-	ld (hl),$05
-	inc l
+	ld (hl),$05 ;cuando la vida es 0 y por tanto está activado ENEMYSTATUS_NO_HEALTH, state = 5.
+	inc l ;apuntamos al substate
 	ld (hl),$00 ; [substate]
 	ld l,Enemy.counter1
-	ld (hl),60
-	jr @normalStatus
+	ld (hl),60 ;seteamos contador
+	jr @normalStatus ;saltamos normalStatus, state5 y substate0.
 
+; Actualiza var35 (que indicará la fase en la que se encuentra el boss) y la velocidad del enemigo dependiendo de la vida que le quede. Aumenta la velocidad por fase del boss.
 @justHit:
-	call veranFairy_updateVar35BasedOnHealth
+	call veranFairy_updateVar35BasedOnHealth ; actualiza var35 y a dependiendo de la vida del enemigo. Serán 0, 1 o 2, indicando la fase en la que se encuentra Veran.
 	ld hl,veranFairy_speedTable
 	rst_addAToHl
-	ld e,Enemy.speed
+	ld e,Enemy.speed ;actualizas al speed del enemigo dependiendo de la fase en la que esté, es decir, dependiendo de la a que conseguimos en veranFairy_updateVar35BasedOnHealth.
 	ld a,(hl)
-	ld (de),a
+	ld (de),a 
 
 @normalStatus:
 	ld e,Enemy.state
@@ -364,7 +365,7 @@ veranFairy_state4:
 
 ; Dead
 veranFairy_state5:
-	inc e
+	inc e ;apuntamos al substate
 	ld a,(de)
 	rst_jumpTable
 	.dw @substate0
@@ -373,49 +374,54 @@ veranFairy_state5:
 
 @substate0:
 	call ecom_decCounter1
-	jp nz,ecom_flickerVisibility
+	jp nz,ecom_flickerVisibility ;el boss parpadea
 	ld l,e
-	inc (hl)
-	jp objectSetVisible82
+	inc (hl) ;substate = substate + 1
+	jp objectSetVisible82 ;lo hace visible con prioridad 2 (mira el campo visible del ObjectStruct de struct.s).
 
 @substate1:
 	call ecom_incSubstate
 	ld l,Enemy.counter2
-	ld (hl),65
+	ld (hl),65 
 	ld bc,TX_5612
 	jp showText
 
+; cuando termina el texto se crean cuatro explosiones separadas por 16 frames. Además, después de X frames (33 frames, 65 del contador - 32 que es cuando empieza) empieza un fade
+; a blanco. Cuando termina el contador se salta a triggear la cutscene.
 @substate2:
-	call ecom_decCounter2
-	jr z,@triggerCutscene
+	call ecom_decCounter2 
+	jr z,@triggerCutscene ;cuando el contador sea 0 se salta a la cutscene del intento de huida de la Torre Negra.
+	;mientras que no sea 0 el código sigue.
 
 	ld a,(hl) ; [counter2]
 	and $0f
-	ret nz
+	ret nz ;cada 16 frames sigue el código. Esto hace que las explosiones que se van a generar salgan cada 16 frames.
 	ld a,(hl) ; [counter2]
-	and $f0
-	swap a
-	dec a
-	push af
-	dec a
-	call z,fadeoutToWhite
+	and $f0 ;te quedas con los bits altos
+	swap a ;los cambias por los bajos
+	dec a ;restas 1
+	push af ;guardas af en la pila
+	dec a ;restas 1
+	call z,fadeoutToWhite ;cuando la resta dé 0 (cuando el contador vaya por 32 en decimal), llamas a fadeoutToWhite, empieza el fade a blanco.
 	pop af
-	ld hl,@explosionPositions
+	ld hl,@explosionPositions ; se recorre la tabla según el a, que empieza en 3 (el contador era 65 así que la primera vez que el código llega aquí a = 3, luego 2, 1 y 0.
+	; Hay cuatro explosiones).
 	rst_addDoubleIndex
 	ldi a,(hl)
 	ld c,(hl)
-	ld b,a
+	ld b,a ;cargas en b y en c la posición de explosión que toca
 	call getFreeInteractionSlot
 	ret nz
-	ld (hl),INTERAC_EXPLOSION
+	ld (hl),INTERAC_EXPLOSION ; creas la explosión
 	ld l,Interaction.var03
-	inc (hl) ; [explosion.var03] = $01
-	jp objectCopyPositionWithOffset
+	inc (hl) ; [explosion.var03] = $01 
+	jp objectCopyPositionWithOffset ;pones la explosión en la posición determinada por b y c
 
+; Cuando la pantalla esté completamente blanca se elimina a Veran fairy y se salta a la cutscene.
 @triggerCutscene:
 	ld a,(wPaletteThread_mode)
 	or a
-	ret nz
+	ret nz ;cuando la pantalla esté completamente blanca, se sigue el código.
 	call clearAllParentItems
 	call dropLinkHeldItem
 	ld a,CUTSCENE_BLACK_TOWER_ESCAPE_ATTEMPT
@@ -520,20 +526,21 @@ veranFairy_checkLoopAroundScreen:
 
 ;;
 ; @param[out]	a	Value written to var35
+; Pone var35 a 0, 1 o 2 dependiendo de si la vida del enemigo es > 20, <20 y >10 o < 10. Son como tres fases.
 veranFairy_updateVar35BasedOnHealth:
 	ld b,$00
 	ld e,Enemy.health
-	ld a,(de)
-	cp 20
-	jr nc,++
+	ld a,(de) ; a = enemy.health
+	cp 20 ; si a < 20 entonces se activa el carry porque en cp el carry se activa cuando a < b (internamente hace una resta para comparar los números)
+	jr nc,++ ; si enemy.health > 20, salta y pone var35 a b, que es 0
 	inc b
-	cp 10
-	jr nc,++
-	inc b
+	cp 10 
+	jr nc,++ ; si enemy.health > 10, salta y pone var35 a b, que es 1
+	inc b ; si enemy.health es < 10, pone var35 a 2
 ++
 	ld e,Enemy.var35
 	ld a,b
-	ld (de),a
+	ld (de),a 
 	ret
 
 ;;
