@@ -28,7 +28,7 @@ enemyCode06:
 	ld (wMenuDisabled),a
 	ld h,d
 	ld l,Enemy.health
-	inc (hl) ;le aumentamos la vida para evitar que se borre el boss uutomáticamente.
+	inc (hl) ;le aumentamos la vida para evitar que se borre el boss automáticamente.
 	ld l,Enemy.state
 	ld (hl),$05 ;cuando la vida es 0 y por tanto está activado ENEMYSTATUS_NO_HEALTH, state = 5.
 	inc l ;apuntamos al substate
