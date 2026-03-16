@@ -87,7 +87,6 @@ enemyBoss_initializeRoom:
 	ld a,b
 	or a
 	call nz,loadPaletteHeader ;b = 0 si no tienes que cargar una palette header.
-	; si no usas ninguna de estas cosas extras usas directamente enemyBoss_initializeRoomWithoutExtraGfx.
 
 	; Fall through
 

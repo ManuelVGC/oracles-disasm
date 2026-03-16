@@ -6756,34 +6756,108 @@ objectUpdateSpeedZ:
 ; @param[out]	zflag	Set if resulting position is below or on the ground
 objectUpdateSpeedZ_paramC:
 	ldh a,(<hActiveObjectType)
-	add Object.z
+	add Object.z ;apuntamos al campo z del objeto activo (le estamos sumando un offset a la dirección de memoria base de hActiveObjectType). z es un valor negativo que indica
+	; cuán por encima del suelo está el objeto
 	ld e,a
-	add Object.speedZ - Object.z
+	add Object.speedZ - Object.z ;apuntamos ahora al object.speedZ (hace dirección base de hActiveObjectType + object.z, que es donde dejamos apuntado en las líneas
+	; anteriores) + object.speedZ - object.z, quedando apuntando a object.speedZ (dirección base + object.z + object.speedZ - object.z)
 	ld l,a
 	ld h,d
-	call add16BitRefs
-	bit 7,a
-	jr z,@belowGround
+	call add16BitRefs ;suma de + hl, que son object.z y object.speedZ, actualizando por tanto la z del personaje (las speedZ es la velocidad a la que cae)
+	bit 7,a ;comprueba este bit porque la z es un entero de 16 bits con signo, así que ese bit indica el signo positivo o negativo. Si es negativo, si ese bit es un 1,
+	; sigue en el aire
+	jr z,@belowGround ; si el bit = 0, entonces está en el suelo o por debajo de él.
 
 ; Above ground
 	dec l
 	ld a,c
-	add (hl)
-	ldi (hl),a
+	add (hl) ;sumamos c al byte bajo de speedZ para aumentar la velocidad con la gravedad c. Al principio la speedZ es 0.
+	ldi (hl),a ;guardamos el resultado en speedZ de vuelta y dejamos apuntado al byte alto
 	ld a,$00
-	adc (hl)
-	ld (hl),a
-	or d
+	adc (hl) ;suma a a hl y el carry que se haya generado antes
+	ld (hl),a ;añade el carry al byte alto de speedZ si la suma al byte bajo tuvo carry (es una suma de toda la vida, 9 + 8 = 7 con carry así que 17)
+	or d ;apaga el z flag (d siempre apunta a ram de objetos así que nunca es 0, es una forma fácil de apagar el flag z)
 	ret
 
 ; Can't be below ground, set z position to 0
 @belowGround:
 	xor a
-	ld (de),a
-	dec e
-	ld (de),a
-	xor a
+	ld (de),a ;byte alto de object.z = 0.
+	dec e ;apuntamos a byte bajo de object.z
+	ld (de),a ;byte bajo de object.z = 0.
+	xor a ;dejamos activado flag z.
 	ret
+
+
+;;
+; @param	c	Boolean to skip frames so Veran descend slower.
+; @param	b	Distance to ground
+; @param[out]	hl	Object.speedZ variable
+; @param[out]	zflag	Set if resulting position is below or on the ground
+veranUpdateZ_flying:
+	ldh a,(<hActiveObjectType)
+	add Object.z ;apuntamos al campo z del objeto activo (le estamos sumando un offset a la dirección de memoria base de hActiveObjectType). z es un valor negativo que indica
+	; cuán por encima del suelo está el objeto
+	ld e,a
+	add Object.speedZ - Object.z ;apuntamos ahora al object.speedZ (hace dirección base de hActiveObjectType + object.z, que es donde dejamos apuntado en las líneas
+	; anteriores) + object.speedZ - object.z, quedando apuntando a object.speedZ (dirección base + object.z + object.speedZ - object.z)
+	ld l,a
+	ld h,d
+	call add16BitRefs ;suma de + hl, que son object.z y object.speedZ, actualizando por tanto la z del personaje (las speedZ es la velocidad a la que cae). 
+	bit 7,a ;comprueba este bit porque la z es un entero de 16 bits con signo, así que ese bit indica el signo positivo o negativo. Si es negativo, si ese bit es un 1,
+	; sigue en el aire
+	jr z,@belowGround ; si el bit = 0, entonces está en el suelo o por debajo de él.
+
+; Above ground
+	; Comprobamos el valor del registro c para ver si en este frame disminuimos velocidad o no.
+	ld a,c
+	xor $01
+	ld c,a
+	bit 0,c
+	jr z,++
+
+	dec l
+	ld a,(hl)
+	sub $00 ;restamos una cantidad X al byte bajo de speedZ para disminuir la velocidad. 
+	ldi (hl),a ;guardamos el resultado en speedZ de vuelta y dejamos apuntado al byte alto
+	ld a,(hl)
+	sbc $00 ;quita el carry al byte alto de speedZ si la resta al byte bajo tuvo carry (es una suma de toda la vida, 9 + 8 = 7 con carry así que 17)
+	ld (hl),a
+
+	call c,@negativeSpeedor0 ;cuando la velocidad sea negativa, la ponemos a 2
+
+	dec l ;apuntamos al byte bajo de hl
+	ld a,(hl); cargas hl en a 
+	or a ;lo comparas consigo mismo, si era 0, se activa el flag z
+	jr nz,++
+	inc l ;apuntamos al byte alto de hl
+	ld a,(hl) ;cargamos hl en a
+	or a 
+	jr nz,++
+	call @negativeSpeedor0 ;si la velocidad es 0 justo, se pone a 2
+
+++
+	or d ;apaga el z flag (d siempre apunta a ram de objetos así que nunca es 0, es una forma fácil de apagar el flag z)
+	ret
+
+; Can't be below ground, set z position to the distance we want Veran to be to the ground
+@belowGround:
+	xor a
+	ld (de),a ;byte alto de object.z = 0.
+	dec e ;apuntamos a byte bajo de object.
+	ld (de),a ;byte bajo de object.z = 0.
+	xor a ;dejamos activado flag z.
+	ret
+
+; Cuando la velocidad sea 0 o menos, la ponemos a $50
+@negativeSpeedor0:
+	dec l
+	ld a,$50
+	ldi (hl),a
+	xor a
+	ld (hl),a
+	ret
+
 
 ;;
 ; Updates an object's speedZ in a way that works with sidescrolling areas. This assumes
@@ -8095,6 +8169,23 @@ objectSetSpeedZ:
 ; @param	hl	Address of value to add
 ; @param[out]	a	High byte of result
 add16BitRefs:
+	ld a,(de) ;carga parte baja de de en a
+	add (hl) ;le añade la parte baja de hl
+	ld (de),a ;carga el resultado en de
+	inc e ;apunta a la parte alta de de 
+	inc hl ;apunta a la parte alta de hl
+	ld a,(de) ;carga parte alta de de en a
+	adc (hl) ;le suma la parte alta de hl y el carry que se generó en la suma anterior
+	ld (de),a ;guarda el resultado en de
+	ret
+
+;;
+; Adds a 16-bit variable located at hl to a 16-bit variable at de and distance to ground
+;
+; @param	de	Address to add and write result to
+; @param	hl	Address of value to add
+; @param[out]	a	High byte of result
+addHLandBtoDE:
 	ld a,(de)
 	add (hl)
 	ld (de),a
@@ -8103,6 +8194,13 @@ add16BitRefs:
 	ld a,(de)
 	adc (hl)
 	ld (de),a
+
+	dec e ;apuntamos a la parte baja de e
+	ld a,(de) ;guardamos la parte baja de e en a
+	add $dc ;le sumamos la distancia al suelo a la que se tiene que quedar Veran
+	inc e ;apuntamos a la parte alta de e
+	ld a,(de) ;la cargamos en a
+	adc $05 ;sumamos a a el carry que saliese de la suma con b y le sumamos la parte alta de la distancia al suelo a la que se queda Veran
 	ret
 
 ;;

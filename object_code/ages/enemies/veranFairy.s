@@ -17,15 +17,20 @@ enemyCode06:
 	jr nz,@justHit ;si el status != ENEMYSTATUS_NO_HEALTH (al hacer el sub ENEMYSTATUS_NO_HEALTH si el status fuese igual daría 0 y se activaría el flag z) salta a justHit
 
 	; No health
-	ld e,Enemy.invincibilityCounter ;contador que decrementa cada frame, hace que no puedas hacer daño al enemigo y hace que parpadee la visibilidad y en rojo.
-	ld a,(de)
-	ret nz ;espera a que termine el contador de invicibility.
-	call checkLinkCollisionsEnabled ;si c = 1 colisiones habilitadas. Las colisiones no estarán habilitadas por diversas razones, como por ejemplo si Link está muriendo o en el aire.
-	ret nc ;aquí sencillamente esperamos a que Link pueda colisionar.
+	ld h,d
+	ld l,Enemy.collisionType
+	ld a,(hl)
+	or a
+	jr z,++ ;si collisionType es 0, salta.
 
-	ld a,DISABLE_LINK
-	ld (wDisabledObjects),a
-	ld (wMenuDisabled),a
+	ld (hl),$00 ;collisionType = 0. Se desactivan las colisiones de forma que Link no pueda interactuar con él mientras muere.
+	ld a,$01
+	ld (wDisableLinkCollisionsAndMenu),a ;se evita que el jugador interfiera de alguna forma durante la muerte del boss
+
+	ld a,SND_BOSS_DEAD
+	call playSound ;reproduce sonido de boss derrotado
+
+++
 	ld h,d
 	ld l,Enemy.health
 	inc (hl) ;le aumentamos la vida para evitar que se borre el boss automáticamente.
@@ -61,19 +66,22 @@ enemyCode06:
 ;inicialización
 veranFairy_state0:
 	ld a,ENEMY_VERAN_FAIRY
-	ld (wEnemyIDToLoadExtraGfx),a 
+	ld b,$00
+	call enemyBoss_initializeRoom
+
 	call ecom_incState
-	ld l,Enemy.counter1
-	ld (hl),60 ;pone un contador a 96
+
 	ld l,Enemy.speed 
 	ld (hl),SPEED_140 ;setea speed
+
 	ld l,Enemy.var30
 	dec (hl) ;var30 = var30 - 1
-	ld a,$02 
-	call enemySetAnimation ;setea animación
-	jp objectSetVisible82 ;setea tipo de visibilidad $82
 
-; Cutscene just prior to fairy form
+	ld b,$00
+	ld c,$08
+	jp enemyBoss_spawnShadow
+
+; Cutscene de aparición de Veran e inicio del combate
 veranFairy_state1:
 	inc e
 	ld a,(de)
@@ -82,167 +90,75 @@ veranFairy_state1:
 	.dw @substate1
 	.dw @substate2
 	.dw @substate3
-	.dw @substate4
-	.dw @substate5
-	.dw @substate6
-	.dw @substate7
-	.dw @substate8
-	.dw @substate9
-	.dw @substateA
-	.dw @substateB
-	.dw @substateC
 
-; parpadeo del principio
+; desactivamos a Link y esperamos a que se cierren las puertas
 @substate0:
-	call ecom_decCounter1 ;aquí queda apuntando el hl al enemy.counter1
-	jp nz,ecom_flickerVisibility ;durante 96 frames hace un flicker de la visibilidad
-	ld (hl),$08 ;se setea el counter1 a 8
-	ld l,e ;l a apunta al substate
-	inc (hl) ; substate = substate + 1
-	jp objectSetVisible83
 
-; muestra primer texto después de parpadear
-@substate1:
-	call ecom_decCounter1
+	ld a,DISABLE_LINK
+	ld (wDisabledObjects),a
+	ld (wMenuDisabled),a
+
+	; Wait for door to close
+	ld a,($cc93)
+	or a
 	ret nz
-	ld l,e
-	inc (hl) ; substate = substate + 1
-	ld bc,TX_560f
-	jp showText
 
-; cambia la animación del personaje
-@substate2:
-	call ecom_incSubstate ; substate = substate + 1
-	ld l,Enemy.counter1
-	ld (hl),30 ;setea counter a 48 
-	ld a,$04
-	jp enemySetAnimation ;setea una nueva animación
+	ld e,Enemy.counter1
+	ld a,20
+	ld (de),a
 
-; creación y aparición de rayos y tal
-@substate3:
-	ld c,$33 ;lugar donde caerá el rayo, lo usa más tarde en setShortPosition_paramC
-
-; define un contador que se usa para espaciar los rayos
-@strikeLightningAfterCountdown:
-	call ecom_decCounter1
-	ret nz
-	ld (hl),10 ; [counter1]
-	ld l,e
-	inc (hl) ; [substate]
-
-; crea un rayo
-@strikeLightning:
-	call getFreePartSlot
-	ret nz
-	ld (hl),PART_LIGHTNING
-	ld l,Part.yh
-	jp setShortPosition_paramC
-
-; espera y cae rayo en la posición $7b
-@substate4:
-	ld c,$7b
-	jr @strikeLightningAfterCountdown
-
-; espera y cae rayo en la posición $55
-@substate5:
-	ld c,$55
-	jr @strikeLightningAfterCountdown
-
-; espera y cae rayo en la posición $3b
-@substate6:
-	ld c,$3b
-	jr @strikeLightningAfterCountdown
-
-; espera y cae rayo en la posición $73
-@substate7:
-	ld c,$73
-	jr @strikeLightningAfterCountdown
-
-; espera y cae rayo en la posición $59 y luego fade a blanco
-@substate8:
-	call ecom_decCounter1
-	ret nz
-	ld l,e
-	inc (hl) ; [substate]
-	ld c,$59
-	call @strikeLightning
-	jp fadeoutToWhite
-
-; Remove pillar tiles
-@substate9:
-	ld b,$0c ; b = 12, que son el número de tiles de pilar que hay que sustituir
-	ld hl,@pillarPositions
-@loop
-	push bc ;guarda b y c en la pila para usarlos ahora y que no se pierdan sus valores
-	ldi a,(hl) ;carga el valor de la primera posición en a y apunta a la siguiente
-	ld c,a ; c = a = valor de la primera posición
-	ld a,$a5 ;tileindex que se va a poner
-	push hl ;guarda hl para recuperarlo después
-	call setTile ;setea el tile en la posición que toca
-	pop hl 
-	pop bc
-	dec b ; se decrementa el número de tiles que quedan por sustituir
-	jr nz,@loop ;cuando no queden tiles que sustituir se termina el bucle
 	jp ecom_incSubstate
+	
 
-@pillarPositions:
-	.db $23 $33 $63 $73 $45 $55 $49 $59
-	.db $2b $3b $6b $7b
+; Se espera unos frames y aparece Veran con una velocidad inicial
+@substate1:
+	call ecom_decCounter1 
+	ret nz ;espera hasta que counter1 sea 0
 
-; Spawn mimics y cambia la forma de Veran a la forma fairy
-@substateA:
-	ld b,$04 ; número de mimics
-	ld hl,@mimicPositions
-
-@nextMimic:
-	ldi a,(hl) ;se carga en a una posición de la lista de posiciones donde irán los mimics
-	ld c,a ; c = a
-	push hl
-	call getFreeEnemySlot
-	jr nz,++
-	ld (hl),ENEMY_LINK_MIMIC
-	ld l,Enemy.yh
-	call setShortPosition_paramC ;se pone el mimic creado en y = c = a = posición de la lista de posiciones de mimicPositions
-++
-	pop hl
-	dec b ;se decrementa el número de mimic que faltan por spawnear
-	jr nz,@nextMimic ;hasta que no se hayan spawneado 4 mimics no sigue el código
+	ld e,Enemy.counter1
+	ld a,10
+	ld (de),a
 
 	call ecom_incSubstate
-	ld l,Enemy.counter1
-	ld (hl),30 ;counter = 48
+	ld c,$24
+	call ecom_setZAboveScreen ;seteamos la posición de Veran c por encima del borde superior de la pantalla
 
-	; se limpian los flags de la OAM
+	; se limpian los flags de la OAM. Con esto se consigue que la Veran fairy no siga azul, como el sprite forma humana.
 	ld l,Enemy.oamFlagsBackup
 	xor a
 	ldi (hl),a 
 	ld (hl),a
 
-	ld l,Enemy.zh
-	dec (hl) ;se mueve un poco Veran hacia abajo
-	call objectSetVisible83 ; se pone visibilidad 83
-	ld a,$05
-	call enemySetAnimation ;nueva animación
-	ld a,$04
-	jp fadeinFromWhiteWithDelay ;fade desde blanco
+	
+	; Se le da una velocidad inicial a Veran
+	ld b,$00
+	ld c,$b0 ;speedZ
+	call objectSetSpeedZ
 
-@mimicPositions:
-	.db $33 $73 $3b $7b
 
-; cuando termina el fade desde blanco espera un poco y muestra un texto
-@substateB:
-	ld a,(wPaletteThread_mode)
-	or a
-	ret nz ;cuando termine el fade sigue el código
+	ld a,$05 
+	call enemySetAnimation ;setea animación
+
+	ld c,$00 ;inicialización del boolean que hace que se skipeen frames al diminuir la velocidad de bajada de Veran.
+
+	jp objectSetVisible83 ;setea tipo de visibilidad $83
+	
+; Baja boss hasta el suelo, espera X frames y dice texto
+@substate2:
+	call veranUpdateZ_flying ;Veran descendiendo
+	jp nz,veranFairy_animate
+
+	;pequeña espera después de que llegue al suelo y antes de que diga el texto
 	call ecom_decCounter1 
 	ret nz ;espera hasta que counter1 sea 0
-	ld l,e
-	inc (hl) ;incrementa substate
+
+	call ecom_incSubstate
+
 	ld bc,TX_5610
 	jp showText
 
-; pasa a la lucha contra el boss, devuelve el control al jugador y reproduce música de boss
-@substateC:
+; espera X frames y empieza boss fight
+@substate3: 
 	ld h,d
 	ld l,Enemy.state
 	inc (hl) ;pasas al state2
@@ -371,6 +287,7 @@ veranFairy_state5:
 	.dw @substate0
 	.dw @substate1
 	.dw @substate2
+	.dw @substate3
 
 @substate0:
 	call ecom_decCounter1
@@ -382,7 +299,7 @@ veranFairy_state5:
 @substate1:
 	call ecom_incSubstate
 	ld l,Enemy.counter2
-	ld (hl),65 
+	ld (hl),16 
 	ld bc,TX_5612
 	jp showText
 
@@ -390,49 +307,41 @@ veranFairy_state5:
 ; a blanco. Cuando termina el contador se salta a triggear la cutscene.
 @substate2:
 	call ecom_decCounter2 
-	jr z,@triggerCutscene ;cuando el contador sea 0 se salta a la cutscene del intento de huida de la Torre Negra.
-	;mientras que no sea 0 el código sigue.
-
-	ld a,(hl) ; [counter2]
-	and $0f
-	ret nz ;cada 16 frames sigue el código. Esto hace que las explosiones que se van a generar salgan cada 16 frames.
-	ld a,(hl) ; [counter2]
-	and $f0 ;te quedas con los bits altos
-	swap a ;los cambias por los bajos
-	dec a ;restas 1
-	push af ;guardas af en la pila
-	dec a ;restas 1
-	call z,fadeoutToWhite ;cuando la resta dé 0 (cuando el contador vaya por 32 en decimal), llamas a fadeoutToWhite, empieza el fade a blanco.
-	pop af
-	ld hl,@explosionPositions ; se recorre la tabla según el a, que empieza en 3 (el contador era 65 así que la primera vez que el código llega aquí a = 3, luego 2, 1 y 0.
-	; Hay cuatro explosiones).
-	rst_addDoubleIndex
-	ldi a,(hl)
-	ld c,(hl)
-	ld b,a ;cargas en b y en c la posición de explosión que toca
-	call getFreeInteractionSlot
 	ret nz
-	ld (hl),INTERAC_EXPLOSION ; creas la explosión
-	ld l,Interaction.var03
-	inc (hl) ; [explosion.var03] = $01 
-	jp objectCopyPositionWithOffset ;pones la explosión en la posición determinada por b y c
 
-; Cuando la pantalla esté completamente blanca se elimina a Veran fairy y se salta a la cutscene.
-@triggerCutscene:
-	ld a,(wPaletteThread_mode)
-	or a
-	ret nz ;cuando la pantalla esté completamente blanca, se sigue el código.
-	call clearAllParentItems
-	call dropLinkHeldItem
-	ld a,CUTSCENE_BLACK_TOWER_ESCAPE_ATTEMPT
-	ld (wCutsceneTrigger),a
+	call ecom_incSubstate
+	ld l,Enemy.counter2
+	ld (hl),65 
+
+	; Spawn explosion
+	call getFreePartSlot ;creamos una part para la explosión
+	ret nz
+	ld (hl),PART_BOSS_DEATH_EXPLOSION
+	inc l
+	ld e,Enemy.id
+	ld a,(de)
+	ld (hl),a ; [Part.subid] = [Enemy.id]
+
+	jp objectCopyPosition ;copia la posición del objeto d al objeto h, en este caso del boss a la explosión
+	
+
+@substate3:
+	call ecom_decCounter2 
+	ret nz
+
+	call markEnemyAsKilledInRoom
+
+	ld e,Enemy.id
+	ld a,(de)
+	sub $08
+	cp $68
+	jr c,++ ;esta comparación hace que los enemigos no bosses o minibosses no cambien su música. Los bosses y minibosses todos tienen id igual o mayor que 70.
+	ld a,(wActiveMusic2)
+	ld (wActiveMusic),a
+	call playSound ;se vuelve a poner la música que sonaba antes de enfrertarte al boss
+++
 	jp enemyDelete
 
-@explosionPositions:
-	.db $f0 $f0
-	.db $10 $08
-	.db $f8 $04
-	.db $08 $f8
 
 
 ; BUG(?): $00 acts as a terminator, but it's also used as a position value, meaning one movement
