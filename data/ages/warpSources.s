@@ -94,7 +94,6 @@ group0WarpSources:
 	m_StandardWarp $0 $c5 $27 $3 $4
 	m_StandardWarp $0 $cd $29 $2 $4
 	m_StandardWarp $0 $da $3a $3 $4
-	m_StandardWarp $0 $dd $08 $2 $4
 	m_StandardWarp $0 $3a $1a $3 $4
 	m_PointerWarp     $38 warpSource76e6
 	m_StandardWarp $0 $e0 $14 $2 $4

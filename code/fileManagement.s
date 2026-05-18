@@ -364,14 +364,14 @@ initialFileVariables:
 .ifdef ROM_AGES
 	; Initial spawn location
 	.db <wDeathRespawnBuffer.group,		$00
-	.db <wDeathRespawnBuffer.room,		$8d
-	.db <wDeathRespawnBuffer.y,		$30
-	.db <wDeathRespawnBuffer.x,		$65
+	.db <wDeathRespawnBuffer.room,		$dd
+	.db <wDeathRespawnBuffer.y,		$45
+	.db <wDeathRespawnBuffer.x,		$45
 	.db <wDeathRespawnBuffer.facingDir,	$02
 
-	.db <wSwordLevel,			$01
-	.db <wInventoryStorage,			ITEM_SWORD
-	.db <wObtainedTreasureFlags,		(1<<TREASURE_SWORD)
+	;.db <wSwordLevel,			$01
+	;.db <wInventoryStorage,			ITEM_SWORD
+	;.db <wObtainedTreasureFlags,		(1<<TREASURE_SWORD)
 
 	.db <wJabuWaterLevel,			$21
 	.db <wPortalGroup,			$ff
@@ -391,8 +391,8 @@ initialFileVariables:
 
 ; Standard game (not linked or hero)
 initialFileVariables_standardGame:
-	.db <wLinkHealth,			$0c ; 3 hearts
-	.db <wLinkMaxHealth,			$0c
+	.db <wLinkHealth,			$10 ; 3 hearts
+	.db <wLinkMaxHealth,			$14
 	; Continue reading the following data
 
 ; Hero game (not linked+hero game)
