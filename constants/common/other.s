@@ -15,8 +15,8 @@
 
 ; Overworld size
 .ifdef ROM_AGES
-	.define OVERWORLD_WIDTH		14
-	.define OVERWORLD_HEIGHT	14
+	.define OVERWORLD_WIDTH		16
+	.define OVERWORLD_HEIGHT	16
 
 	; The starting X/Y positions of the tile grid on the map screen
 	.define OVERWORLD_MAP_START_X	3

@@ -3032,18 +3032,20 @@ b2_updateMenus:
 	ret nz
 
 	call playHeartBeepAtInterval
-	ld a,(wKeysJustPressed)
-	and BTN_START | BTN_SELECT
-	ret z
+	ld a,(wKeysJustPressed) ;guarda el valor de la tecla pulsada en a (BTN_START, BTN_SELECT o la que sea, o 0 en caso de que no se pulse nada).
+	and BTN_START | BTN_SELECT ;se hace un and con el START y el SELECT de forma que el resultado es START si antes era START o SELECT si antes era SELECT.
+	ret z ;si no se ha pulsado ningún botón, sale.
 
-	ld c,$03
-	cp BTN_START | BTN_SELECT
-	jr z,+
+	ld c,$03 ;c = 3, se usará después en openMenu_body para indicar que lo que tiene que hacer es saltar al menú tipo 3, que es guardar partida directamente.
+	cp BTN_START | BTN_SELECT ; compara a con BTN_START y BTN_SELECT, para cuando se pulsan los dos a la vez. Compara a porque cp parece que siempre compara con a.
+	jr z,+ ;si efectivamente se han pulsado los dos a la vez salta a openMenu_body con una c = 3.
 
-	dec c
-	bit BTN_BIT_SELECT,a
-	jr nz,+
-	dec c
+	
+	dec c ; si no se han pulsado los dos botones a la vez, decrementas c y lo dejas a 2, indicando el menú tipo 2, el mapa.
+	bit BTN_BIT_SELECT,a ;comprueba si a tiene activado el "bit select". Como SELECT es $04 (lo pone en hardware.s) es comprobar el bit 2 (00000100).
+	;jr nz,+ ;si el bit no es 0 entonces está activado el botón SELECT. Y salta a openMenu_body con c = 2, para que se abra el mapa.
+	ret nz ; hago el cambio para que si el SELECT sea el que se pulsa, no haga nada, que no abra el minimapa.
+	dec c ; si no se ha pulsado SELECT entonces ya solo queda START y salta a openMenu_body con c = 1, es decir, el menú tipo 1, el inventario.
 +
 	jp openMenu_body
 
