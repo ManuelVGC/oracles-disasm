@@ -751,7 +751,7 @@ tilesetData:
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x75
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x76
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x77
-	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x78
+	.db $0f $01 $00 $00 CUSTOM_PALH_1 $00 $00 $00 ; Tileset 0x78
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x79
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x7a
 	.db $0f $01 $00 $00 $00 $00 $00 $00 ; Tileset 0x7b
