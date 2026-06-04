@@ -4273,8 +4273,8 @@ paletteDataCustom1:
 	m_RGB16 $03 $09 $0e
 	m_RGB16 $00 $00 $00
 
-	m_RGB16 $14 $18 $0f
-	m_RGB16 $07 $12 $10
-	m_RGB16 $09 $04 $10
-	m_RGB16 $00 $05 $05
+	m_RGB16 $1f $1f $18
+	m_RGB16 $04 $16 $1f
+	m_RGB16 $00 $0b $17
+	m_RGB16 $0c $1b $11
 
