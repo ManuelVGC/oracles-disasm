@@ -20,6 +20,11 @@ harmfulWaterTilesCollisionTable:
 	.dw @stub
 	.dw @underwater
 	.dw @dungeon
+	.dw @placeholderTileset
+
+
+@placeholderTileset:
+	.db $00
 
 @overworld:
 	.db TILEINDEX_POLLUTION $00
@@ -50,6 +55,15 @@ currentsCollisionTable:
 	.dw @stub
 	.dw @stub
 	.dw @dungeon
+	.dw @placeholderTileset
+
+
+@placeholderTileset:
+	.db $54, ANGLE_UP
+	.db $55, ANGLE_DOWN
+	.db $56, ANGLE_LEFT
+	.db $57, ANGLE_RIGHT
+	.db $00
 
 @dungeon:
 	.db $54, ANGLE_UP

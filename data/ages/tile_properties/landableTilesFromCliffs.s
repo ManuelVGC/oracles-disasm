@@ -7,12 +7,17 @@ landableTileFromCliffExceptions:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+
+
 
 @indoors:
 @dungeons:
 @five:
 	.db TILEINDEX_RAISABLE_FLOOR_1 TILEINDEX_RAISABLE_FLOOR_2
 @overworld:
+@placeholderTileset:
 @sidescrolling:
 @underwater:
 	.db $00

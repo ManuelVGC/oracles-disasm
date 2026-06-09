@@ -14,7 +14,10 @@ keyDoorGraphicTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
 
+
+@placeholderTileset:
 @overworld:
 @indoors:
 @sidescrolling:

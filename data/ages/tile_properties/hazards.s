@@ -12,6 +12,16 @@ hazardCollisionTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset:
+	.db $52 $01
+	.db $53 $01
+	.db $58 $01
+	.db $59 $01
+	.db $5a $01
+	.db $f3 $02
+	.db $00
 
 @overworld:
 @underwater:

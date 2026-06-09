@@ -11,11 +11,22 @@ breakableTileCollisionTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset:
+	.db $eb $33 
+	.db $f2 $34
+	.db $e4 $35
+	.db $ee $36
+	.db $ec $37
+	.db $e2 $38
+	.db $00
+
 
 @overworld:
 @underwater:
 	.db $da $32
-	.db $f8 $00
+	.db $f8 $00 
 	.db $f2 $0d
 	.db $c0 $07
 	.db $c1 $08
@@ -147,8 +158,8 @@ breakableTileModes:
 	m_BreakableTileData %11101101 %10001101 %0110 $0 $c0 $dc ; $04
 	m_BreakableTileData %11101101 %10001101 %0110 $0 $00 $f3 ; $05
 	m_BreakableTileData %11101101 %10001101 %0110 $0 $00 $3a ; $06
-	m_BreakableTileData %10000100 %00000000 %0000 $4 $06 $3a ; $07
-	m_BreakableTileData %10000100 %00000000 %0000 $0 $c6 $dc ; $08
+	m_BreakableTileData %10000100 %00000000 %0000 $4 $06 $3a ; $07 ;para que salga suelo normal debajo de la piedra cuando la quitas
+	m_BreakableTileData %10000100 %00000000 %0000 $0 $c6 $dc ; $08 ;para que salga una escalera al quitar una piedra
 	m_BreakableTileData %10000100 %00000000 %0000 $0 $c6 $d2 ; $09
 	m_BreakableTileData %10000100 %00000000 %0000 $0 $c6 $d7 ; $0a
 	m_BreakableTileData %10000100 %00000000 %0000 $0 $06 $3a ; $0b
@@ -191,3 +202,12 @@ breakableTileModes:
 	m_BreakableTileData %00001100 %00000000 %0000 $0 $06 $01 ; $30
 	m_BreakableTileData %10100100 %10000000 %0000 $0 $06 $01 ; $31
 	m_BreakableTileData %01111100 %00000001 %1101 $0 $1f $00 ; $32
+
+	; uso la entrada de la tabla correspondiente a romper una hierba y que aparezca suelo y uso los mismos 2 parametros iniciales para que se rompa todo con la espada, ya que
+	; no tengo bombas ni nada más.
+	m_BreakableTileData %11101101 %10001101 %0100 $1 $10 $05 ; $33
+	m_BreakableTileData %11101101 %10001101 %0000 $7 $0c $05 ; $34
+	m_BreakableTileData %11101101 %10001101 %0000 $4 $06 $05 ; $35
+	m_BreakableTileData %11101101 %10001101 %0110 $1 $00 $05 ; $36
+	m_BreakableTileData %11101101 %10001101 %0000 $7 $1f $05 ; $37
+	m_BreakableTileData %11101101 %10001101 %0000 $0 $c6 $fc ; $38

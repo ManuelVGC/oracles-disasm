@@ -6,7 +6,11 @@ seedsDontBounceTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
 
+
+@placeholderTileset: 
+	.db $00
 @overworld:
 	.db $ce $cf $c5 $c5 $c6 $c7 $c8 $c9 $ca
 @indoors:

@@ -11,6 +11,13 @@ warpTileTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset:
+	.db $f6 $00
+	.db $fc $00
+	.db $fe $00
+	.db $00
 
 @overworld:
 @underwater:

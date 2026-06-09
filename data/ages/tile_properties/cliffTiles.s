@@ -13,6 +13,24 @@ cliffTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset:
+	.db $10, ANGLE_UP
+	.db $11, ANGLE_UP
+	.db $12, ANGLE_LEFT
+	.db $13, ANGLE_RIGHT
+	.db $20, ANGLE_LEFT
+	.db $21, ANGLE_RIGHT
+	.db $22, ANGLE_LEFT
+	.db $23, ANGLE_RIGHT
+	.db $84, ANGLE_DOWN
+	.db $ca, ANGLE_DOWN
+	.db $cb, ANGLE_DOWN
+	.db $cc, ANGLE_DOWN
+	.db $cd, ANGLE_DOWN
+	.db $ce, ANGLE_DOWN
+	.db $00
 
 @overworld:
 @underwater:

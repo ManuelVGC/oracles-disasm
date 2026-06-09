@@ -31,6 +31,12 @@ interactableTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset:
+	.db $f1 $04
+	.db $f2 $05
+	.db $00
 
 @overworld:
 @underwater:

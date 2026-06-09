@@ -11,6 +11,10 @@ facingDirAfterWarpTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+
+
 
 @indoors:
 	.db $36 DIR_UP ; Cave opening?
@@ -19,6 +23,7 @@ facingDirAfterWarpTable:
 	.db $44 DIR_LEFT  ; Up stairs
 	.db $45 DIR_RIGHT ; Down stairs
 @overworld:
+@placeholderTileset:
 @underwater:
 @five:
 	.db $00

@@ -7,6 +7,8 @@ itemDropConveyorTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
 
 @dungeons:
 @five:
@@ -15,6 +17,7 @@ itemDropConveyorTilesTable:
 	.db TILEINDEX_CONVEYOR_DOWN,  ANGLE_DOWN
 	.db TILEINDEX_CONVEYOR_LEFT,  ANGLE_LEFT
 @overworld:
+@placeholderTileset:
 @indoors:
 @sidescrolling:
 @underwater:

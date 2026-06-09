@@ -14,6 +14,23 @@ tileTypesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
+@placeholderTileset: 
+	.db $f3 TILETYPE_HOLE
+	.db $eb TILETYPE_GRASS
+	.db $e3 TILETYPE_STAIRS
+	.db $51 TILETYPE_PUDDLE
+	.db $53 TILETYPE_WATER
+	.db $52 TILETYPE_WATER
+	.db $58 TILETYPE_SEAWATER
+	.db $59 TILETYPE_WATER
+	.db $5a TILETYPE_WATER
+	.db $54 TILETYPE_UPCURRENT
+	.db $57 TILETYPE_RIGHTCURRENT
+	.db $55 TILETYPE_DOWNCURRENT
+	.db $56 TILETYPE_LEFTCURRENT
+	.db $00
 
 @overworld:
 @underwater:

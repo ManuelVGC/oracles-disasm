@@ -11,6 +11,8 @@ tileIncreaseGashaMaturityOnBreakTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
+	.dw @placeholderTileset
+
 
 @overworld:
 @underwater:
@@ -43,5 +45,7 @@ tileIncreaseGashaMaturityOnBreakTable:
 	.db $3b 100
 	.db $68 50
 	.db $69 50
+
+@placeholderTileset:
 @sidescrolling:
 	.db $00

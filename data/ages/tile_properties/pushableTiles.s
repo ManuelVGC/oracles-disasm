@@ -26,6 +26,11 @@ pushableTilePropertiesTable:
 	dbrel @sidescrolling
 	dbrel @underwater
 	dbrel @five
+	dbrel @placeholderTileset
+
+
+@placeholderTileset:
+	.db $00
 
 @overworld:
 	.db $d3 $3a $02 $01

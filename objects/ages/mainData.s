@@ -1350,7 +1350,6 @@ group0MapcaObjectData:
 	obj_End
 
 group0MapcbObjectData:
-	obj_Interaction $b6 $06 $68 $28
 	obj_Pointer group0MapcbEnemyObjectData
 	obj_End
 
