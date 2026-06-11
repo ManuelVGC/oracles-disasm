@@ -15,8 +15,8 @@ warpTileTable:
 
 @placeholderTileset:
 	.db $f6 $00
-	.db $fc $00
-	.db $fe $00
+	.db $58 $00
+	.db $5a $00
 	.db $00
 
 @overworld:

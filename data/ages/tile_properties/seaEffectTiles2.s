@@ -58,13 +58,6 @@ currentsCollisionTable:
 	.dw @placeholderTileset
 
 
-@placeholderTileset:
-	.db $54, ANGLE_UP
-	.db $55, ANGLE_DOWN
-	.db $56, ANGLE_LEFT
-	.db $57, ANGLE_RIGHT
-	.db $00
-
 @dungeon:
 	.db $54, ANGLE_UP
 	.db $55, ANGLE_RIGHT
@@ -72,6 +65,7 @@ currentsCollisionTable:
 	.db $57, ANGLE_LEFT
 	.db $00
 
+@placeholderTileset:
 @overworld:
 	.db $e0, ANGLE_UP
 	.db $e1, ANGLE_DOWN

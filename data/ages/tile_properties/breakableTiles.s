@@ -209,5 +209,5 @@ breakableTileModes:
 	m_BreakableTileData %11101101 %10001101 %0000 $7 $0c $05 ; $34
 	m_BreakableTileData %11101101 %10001101 %0000 $4 $06 $05 ; $35
 	m_BreakableTileData %11101101 %10001101 %0110 $1 $00 $05 ; $36
-	m_BreakableTileData %11101101 %10001101 %0000 $7 $1f $05 ; $37
+	m_BreakableTileData %11101101 %10001101 %0110 $1 $00 $05 ; $37
 	m_BreakableTileData %11101101 %10001101 %0000 $0 $c6 $fc ; $38

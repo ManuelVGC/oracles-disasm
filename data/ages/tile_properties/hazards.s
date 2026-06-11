@@ -15,11 +15,10 @@ hazardCollisionTable:
 	.dw @placeholderTileset
 
 @placeholderTileset:
-	.db $52 $01
-	.db $53 $01
-	.db $58 $01
-	.db $59 $01
-	.db $5a $01
+	.db $fa $01
+	.db $fc $01
+	.db $fe $01
+	.db $ff $01
 	.db $f3 $02
 	.db $00
 
