@@ -18,6 +18,7 @@ breakableTileCollisionTable:
 	.db $f2 $34
 	.db $e4 $35
 	.db $ee $36
+	.db $ed $36
 	.db $ec $37
 	.db $e2 $38
 	.db $00
