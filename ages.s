@@ -329,6 +329,7 @@ m_section_free Ages_Interactions_Bank9 NAMESPACE agesInteractionsBank09
 	.include "object_code/ages/interactions/forestFairy.s"
 	.include "object_code/ages/interactions/rabbit.s"
 	.include "object_code/ages/interactions/bird.s"
+	.include "object_code/ages/interactions/windmill.s"
 	.include "object_code/ages/interactions/ambi.s"
 	.include "object_code/ages/interactions/subrosian.s"
 	.include "object_code/ages/interactions/impaNpc.s"

@@ -229,3 +229,5 @@ objectGfxHeaderTable:
 
 	; CROSSITEMS: Extra object gfx headers
 	/* $e0 */ m_ObjectGfxHeader spr_hyperslingshot_inventory
+
+	/* $e1 */ m_ObjectGfxHeader spr_windmill_l2sword

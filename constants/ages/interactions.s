@@ -477,7 +477,8 @@
 .define INTERAC_IMPA_NPC $4f
 
 ;;
-.define INTERAC_STUB_50 $50
+; Windmill blades
+.define INTERAC_WINDMILL $50
 
 ;;
 ; The guy who you trade a dumbbell to for a mustache

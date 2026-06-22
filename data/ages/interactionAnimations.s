@@ -980,6 +980,7 @@ interaction96Animations:
 	.dw interactionAnimation5ac1d
 	.dw interactionAnimation5ac2e
 interaction50Animations:
+	.dw interactionAnimation521d3
 interaction9fAnimations:
 interactiond5Animations:
 	.dw interactionAnimation5a448
@@ -3072,6 +3073,12 @@ interactionAnimation5adf0:
 	.db $02 $02 $00
 	.db $7f $22 $ff
 
+interactionAnimation521d3:
+	.db $10 $00 $00
+	.db $10 $02 $00
+	.db $10 $04 $00
+	m_AnimationLoop interactionAnimation521d3
+
 
 
 interaction00OamDataPointers: ; 0x5adfc
@@ -3873,9 +3880,9 @@ interaction49OamDataPointers: ; 0x5b25a
 	.dw interactionOamData516f9
 
 interaction50OamDataPointers: ; 0x5b262
-	.dw interactionOamData50205
-	.dw interactionOamData502b9
-	.dw interactionOamData50067
+	.dw interactionOamData4dec9
+	.dw interactionOamData4deea
+	.dw interactionOamData4df0b
 
 interaction56OamDataPointers: ; 0x5b268
 interaction99OamDataPointers: ; 0x5b268

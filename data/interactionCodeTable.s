@@ -80,7 +80,7 @@ interactionCodeTable: ; $3b8b
 	.dw agesInteractionsBank09.interactionCode4d ; 0x4d
 	.dw agesInteractionsBank09.interactionCode4e ; 0x4e
 	.dw agesInteractionsBank09.interactionCode4f ; 0x4f
-	.dw                        interactionDelete ; 0x50 (Code still exists, just not pointed to)
+	.dw agesInteractionsBank09.interactionCode50 ; 0x50
 	.dw agesInteractionsBank09.interactionCode51 ; 0x51
 	.dw agesInteractionsBank09.interactionCode52 ; 0x52
 	.dw agesInteractionsBank09.interactionCode53 ; 0x53

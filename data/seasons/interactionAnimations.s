@@ -898,7 +898,7 @@ interaction4bAnimations:
 	.dw interactionAnimation521c7
 	.dw interactionAnimation521d0
 	.dw interactionAnimation5220a
-interaction4cAnimations:
+interaction4cAnimations: ;la tabla tiene 10 entradas, que corresponden a 10 animaciones diferentes.
 	.dw interactionAnimation521d3
 	.dw interactionAnimation51ce9
 	.dw interactionAnimation51cee

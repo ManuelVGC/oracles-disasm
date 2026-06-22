@@ -1,7 +1,7 @@
 ; See constants/common/interactions.s.
 ;
 ; Data format:
-;   b0: object gfx index (see data/objectGfxHeaders.s)
+;   b0: object gfx index (see data/objectGfxHeaders.s). Entrada X de objectGfxHeaders.s.
 ;   b1: Value for oamTileIndexBase (bits 0-6)
 ;   b2:
 ;     bits 0-3 (lower digit):  default animation index
@@ -580,11 +580,9 @@ interaction4aSubidData:
 	m_InteractionSubidData $00 $6a $93
 	m_InteractionSubidDataEnd
 
+; una entrada para cada subid.
 interaction50SubidData:
-	m_InteractionSubidData $56 $00 $00
-	m_InteractionSubidData $56 $00 $20
-	m_InteractionSubidData $56 $00 $30
-	m_InteractionSubidData $56 $00 $10
+	m_InteractionSubidData $e1 $00 $00
 	m_InteractionSubidDataEnd
 
 ; Unused data?
