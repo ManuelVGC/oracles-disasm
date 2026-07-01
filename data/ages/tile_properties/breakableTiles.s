@@ -11,16 +11,18 @@ breakableTileCollisionTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset:
-	.db $eb $33 
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
+	.db $eb $33
+	.db $ec $37
+	.db $ed $36
+	.db $ee $36
+	.db $ef $36
 	.db $f2 $34
 	.db $e4 $35
-	.db $ee $36
-	.db $ed $36
-	.db $ec $37
-	.db $e2 $38
 	.db $00
 
 

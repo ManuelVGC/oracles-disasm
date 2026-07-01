@@ -554,7 +554,6 @@ group0MapabEnemyObjectData:
 	obj_ItemDrop $00 $05 $67
 	obj_ItemDrop     $01 $68
 group0MapbcEnemyObjectData:
-group0MapcaEnemyObjectData:
 	obj_RandomEnemy $20 $09 $00
 	obj_EndPointer
 
@@ -566,7 +565,6 @@ group0MapdaEnemyObjectData:
 	obj_EndPointer
 
 group0Mapb9EnemyObjectData:
-group0Mapc9EnemyObjectData:
 	obj_RandomEnemy $40 $1a $00
 	obj_EndPointer
 
@@ -2547,4 +2545,10 @@ group0MapdbEnemyObjectData:
 	obj_EndPointer
 
 group0MapccEnemyObjectData:
+	obj_EndPointer
+
+group0Mapc9EnemyObjectData:
+	obj_EndPointer
+
+group0MapcaEnemyObjectData:
 	obj_EndPointer

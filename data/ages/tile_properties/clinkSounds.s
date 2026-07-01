@@ -12,9 +12,11 @@ clinkSoundTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $00
 
 @overworld:

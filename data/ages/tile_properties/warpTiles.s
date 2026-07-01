@@ -11,9 +11,11 @@ warpTileTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $f6 $00
 	.db $58 $00
 	.db $5a $00

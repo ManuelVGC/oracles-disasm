@@ -7,7 +7,8 @@ itemDropConveyorTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
 
 @dungeons:
@@ -17,7 +18,8 @@ itemDropConveyorTilesTable:
 	.db TILEINDEX_CONVEYOR_DOWN,  ANGLE_DOWN
 	.db TILEINDEX_CONVEYOR_LEFT,  ANGLE_LEFT
 @overworld:
-@placeholderTileset:
+@placeholderTilesetFirstArea:
+@placeholderTilesetVillage:
 @indoors:
 @sidescrolling:
 @underwater:

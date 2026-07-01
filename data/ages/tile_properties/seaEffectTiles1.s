@@ -8,9 +8,11 @@ seaEffectTileTable:
 	dbrel @sidescrolling
 	dbrel @underwater
 	dbrel @five
-	dbrel @placeholderTileset
+	dbrel @placeholderTilesetFirstArea
+	dbrel @placeholderTilesetVillage
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $00
 
 @overworld:

@@ -4278,3 +4278,35 @@ paletteDataCustom1:
 	m_RGB16 $00 $0b $17
 	m_RGB16 $0c $1b $11
 
+
+paletteDataCustom2:
+	m_RGB16 $16 $18 $0f
+	m_RGB16 $0c $13 $03
+	m_RGB16 $06 $0b $00
+	m_RGB16 $00 $00 $00
+
+	m_RGB16 $10 $0f $08
+	m_RGB16 $0c $13 $03
+	m_RGB16 $06 $0b $00
+	m_RGB16 $00 $00 $00
+
+	m_RGB16 $16 $18 $0f
+	m_RGB16 $10 $0f $08
+	m_RGB16 $0a $08 $03
+	m_RGB16 $00 $00 $00
+
+	m_RGB16 $1c $1c $18
+	m_RGB16 $16 $14 $14
+	m_RGB16 $09 $09 $0b
+	m_RGB16 $00 $00 $00
+
+	m_RGB16 $0c $18 $1c
+	m_RGB16 $0a $0f $19
+	m_RGB16 $03 $09 $0e
+	m_RGB16 $00 $00 $00
+
+	m_RGB16 $1f $1f $18
+	m_RGB16 $04 $16 $1f
+	m_RGB16 $00 $0b $17
+	m_RGB16 $0c $1b $11
+

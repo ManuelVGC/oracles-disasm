@@ -11,7 +11,8 @@ facingDirAfterWarpTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
 
 
@@ -23,7 +24,8 @@ facingDirAfterWarpTable:
 	.db $44 DIR_LEFT  ; Up stairs
 	.db $45 DIR_RIGHT ; Down stairs
 @overworld:
-@placeholderTileset:
+@placeholderTilesetFirstArea:
+@placeholderTilesetVillage:
 @underwater:
 @five:
 	.db $00

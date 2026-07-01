@@ -31,9 +31,11 @@ interactableTilesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $f1 $04
 	.db $f2 $05
 	.db $00

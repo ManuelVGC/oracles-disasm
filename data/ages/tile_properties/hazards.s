@@ -12,9 +12,11 @@ hazardCollisionTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $fa $01
 	.db $fc $01
 	.db $fe $01

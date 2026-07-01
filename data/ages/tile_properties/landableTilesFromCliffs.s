@@ -7,7 +7,8 @@ landableTileFromCliffExceptions:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
 
 
@@ -17,7 +18,8 @@ landableTileFromCliffExceptions:
 @five:
 	.db TILEINDEX_RAISABLE_FLOOR_1 TILEINDEX_RAISABLE_FLOOR_2
 @overworld:
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 @sidescrolling:
 @underwater:
 	.db $00

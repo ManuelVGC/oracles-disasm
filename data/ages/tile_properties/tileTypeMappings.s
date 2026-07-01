@@ -14,9 +14,11 @@ tileTypesTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-@placeholderTileset: 
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea: 
 	.db $f3 TILETYPE_HOLE
 	.db $eb TILETYPE_GRASS
 	.db $56 TILETYPE_STAIRS

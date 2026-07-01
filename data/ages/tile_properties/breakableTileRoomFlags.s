@@ -19,7 +19,8 @@ tileUpdateRoomFlagsOnBreakTable:
 	.dw @sidescrolling
 	.dw @underwater
 	.dw @five
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
 
 @overworld:
@@ -55,6 +56,7 @@ tileUpdateRoomFlagsOnBreakTable:
 	.db $68 $84
 	.db $69 $8c
 
-@placeholderTileset:
+@placeholderTilesetFirstArea:
+@placeholderTilesetVillage:
 @sidescrolling:
 	.db $00

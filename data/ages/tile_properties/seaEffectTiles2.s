@@ -20,10 +20,11 @@ harmfulWaterTilesCollisionTable:
 	.dw @stub
 	.dw @underwater
 	.dw @dungeon
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
-
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 	.db $00
 
 @overworld:
@@ -55,7 +56,8 @@ currentsCollisionTable:
 	.dw @stub
 	.dw @stub
 	.dw @dungeon
-	.dw @placeholderTileset
+	.dw @placeholderTilesetFirstArea
+	.dw @placeholderTilesetVillage
 
 
 @dungeon:
@@ -65,7 +67,8 @@ currentsCollisionTable:
 	.db $57, ANGLE_LEFT
 	.db $00
 
-@placeholderTileset:
+@placeholderTilesetVillage:
+@placeholderTilesetFirstArea:
 @overworld:
 	.db $e0, ANGLE_UP
 	.db $e1, ANGLE_DOWN
