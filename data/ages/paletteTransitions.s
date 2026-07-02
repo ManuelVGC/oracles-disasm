@@ -45,8 +45,6 @@ paletteTransitionGroup0:
 	dbbww DIR_DOWN  $29  paletteData4d90 paletteData4a30
 	dbbww DIR_DOWN  $2a  paletteData4d90 paletteData4a30
 	dbbww DIR_DOWN  $3d  paletteData4d90 paletteData4bb0
-	dbbww DIR_LEFT  $ca  paletteDataCustom1 paletteDataCustom2
-	dbbww DIR_RIGHT $cb  paletteDataCustom2 paletteDataCustom1
 	.db $ff
 
 paletteTransitionGroup1:
