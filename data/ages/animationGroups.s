@@ -28,11 +28,11 @@ animationGroupTable: ; 0x11b52
 	.dw animationGroup15
 
 animationGroup00: ; 0x11b7e
-	.db $8f
+	.db $87
 	.dw animationDataWaterfall
 	.dw animationDataOverworldWaterFlower
 	.dw animationDataPollution
-	.dw animationDataWhirlpool
+	;.dw animationDataWhirlpool
 animationGroup01: ; 0x11b87
 	.db $87
 	.dw animationDataWaterfallFast

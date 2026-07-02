@@ -29,10 +29,11 @@ animationDataSpike: ; 0x11ead
 	.db $0f $69
 	m_AnimationLoop animationDataSpike
 
+
 animationDataWaterfallFast: ; 0x11ebb
-	.db $04 $00
-	.db $04 $1c
-	.db $04 $01
+	.db $04 $00 
+	.db $04 $1c 
+	.db $04 $01 
 	.db $04 $1d
 	.db $04 $02
 	.db $04 $1e
@@ -54,19 +55,20 @@ animationDataPollution: ; 0x11ed7
 	.db $0f $0b
 	m_AnimationLoop animationDataPollution
 
+; aquí se animan varios subtiles de cascada a la vez.
 animationDataWaterfall: ; 0x11ee1
-	.db $03 $00
-	.db $01 $18
-	.db $04 $20
-	.db $03 $01
-	.db $01 $19
-	.db $04 $21
-	.db $03 $02
-	.db $01 $1a
-	.db $04 $22
-	.db $03 $03
-	.db $01 $1b
-	.db $04 $23
+	.db $03 $00 ;subtiles 84 y 85 del subtileset
+	;.db $01 $18 ;subtiles 6c y 6d del subtileset
+	.db $04 $20 ;subtiles 6e y 6f del subtileset
+	.db $03 $01 ;subtiles 84 y 85 del subtileset
+	;.db $01 $19 ;subtiles 6c y 6d del subtileset
+	.db $04 $21 ;subtiles 6e y 6f del subtileset
+	.db $03 $02 ;subtiles 84 y 85 del subtileset
+	;.db $01 $1a ;subtiles 6c y 6d del subtileset
+	.db $04 $22 ;subtiles 6e y 6f del subtileset
+	.db $03 $03 ;subtiles 84 y 85 del subtileset
+	;.db $01 $1b ;subtiles 6c y 6d del subtileset
+	.db $04 $23 ;subtiles 6e y 6f del subtileset
 	m_AnimationLoop animationDataWaterfall
 
 animationDataWhirlpool: ; 0x11efb
