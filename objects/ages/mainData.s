@@ -76,7 +76,6 @@ group0Mapd1ObjectData:
 group0Mapd2ObjectData:
 group0Mapd3ObjectData:
 group0Mapd4ObjectData:
-group0Mapd5ObjectData:
 group0Mapd6ObjectData:
 group0Mapd9ObjectData:
 group0MapdcObjectData:
@@ -1227,17 +1226,12 @@ group0Map84ObjectData:
 	obj_End
 
 group0Map86ObjectData:
-	obj_Interaction $54 $01 $38 $88
 	obj_End
 
 group0Map88ObjectData:
-	obj_Interaction $dc $08 $66 $02
-	obj_Interaction $54 $01 $38 $68 $02
 	obj_End
 
 group0Map89ObjectData:
-	obj_Interaction $d0 $00 $38 $30
-	obj_Interaction $71 $02 $6d $38
 	obj_End
 
 group0Map83ObjectData:
@@ -1270,12 +1264,9 @@ group0Map94ObjectData:
 	obj_End
 
 group0Map98ObjectData:
-	obj_Interaction $74 $00 $28 $48
-	obj_Interaction $71 $06
 	obj_End
 
 group0Map99ObjectData:
-	obj_Interaction $71 $06
 	obj_End
 
 group0Mapa0ObjectData:
@@ -1283,23 +1274,15 @@ group0Mapa0ObjectData:
 	obj_End
 
 group0Mapa7ObjectData:
-	obj_Interaction $41 $06 $38 $38
 	obj_End
 
 group0Mapa8ObjectData:
-	obj_Interaction $71 $01 $38 $08
-	obj_Interaction $71 $06
 	obj_End
 
 group0Mapa9ObjectData:
-	obj_Interaction $e1 $00 $58 $78
 	obj_End
 
 group0MapaaObjectData:
-	obj_Interaction $48 $0f $48 $18
-	obj_Interaction $48 $10 $58 $38
-	obj_Interaction $67 $03
-	obj_Interaction $71 $07
 	obj_Pointer group0MapaaEnemyObjectData
 	obj_End
 
@@ -1312,7 +1295,6 @@ group0MapadObjectData:
 	obj_End
 
 group0Mapb8ObjectData:
-	obj_Interaction $71 $01 $38 $08
 	obj_End
 
 group0Mapb9ObjectData:
@@ -1320,7 +1302,6 @@ group0Mapb9ObjectData:
 	obj_End
 
 group0MapbaObjectData:
-	obj_Interaction $6b $06
 	obj_End
 
 group0MapbbObjectData:
@@ -1337,8 +1318,6 @@ group0MapbdObjectData:
 	obj_End
 
 group0Mapc8ObjectData:
-	obj_Interaction $71 $01 $38 $08
-	obj_Interaction $c2 $02 $58 $38
 	obj_End
 
 group0Mapc9ObjectData:
@@ -1363,11 +1342,9 @@ group0MapcdObjectData:
 	obj_End
 
 group0Mapd7ObjectData:
-	obj_Interaction $b6 $07 $28 $58
 	obj_End
 
 group0Mapd8ObjectData:
-	obj_Interaction $71 $01 $38 $08
 	obj_End
 
 group0MapdaObjectData:
@@ -4881,3 +4858,8 @@ group5MapfbObjectData:
 	obj_Pointer group5MapfbEnemyObjectData
 	obj_End
 
+
+group0Mapd5ObjectData:
+	obj_Interaction INTERAC_WINDMILL $00 $38 $28
+	obj_Interaction INTERAC_WINDMILL $00 $18 $28
+	obj_End
