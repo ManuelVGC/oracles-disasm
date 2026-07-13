@@ -1147,12 +1147,12 @@ group0Map71ObjectData:
 	obj_End
 
 group0Map72ObjectData:
-	obj_Interaction $49 $0c $38 $48
+	obj_Interaction INTERAC_ESSENCE $00 $38 $50
 	obj_End
 
 group0Map73ObjectData:
-	obj_Interaction $71 $0b
 	obj_Pointer group0Map73EnemyObjectData
+	obj_Interaction INTERAC_ESSENCE $00 $38 $50
 	obj_End
 
 group0Map74ObjectData:
@@ -1203,22 +1203,14 @@ group0Map81ObjectData:
 	obj_End
 
 group0Map82ObjectData:
-	obj_Interaction $6c $00
 .ifdef REGION_JP
 	obj_Interaction $49 $05 $48 $68
 .else
-	obj_Interaction $49 $05 $58 $68
 .endif
-	obj_Interaction $49 $08 $58 $58
-	obj_Interaction $49 $09 $48 $38
 .ifdef REGION_JP
 	obj_Interaction $49 $0a $38 $68
 .else
-	obj_Interaction $49 $0a $28 $68
 .endif
-	obj_Interaction $49 $0e $58 $50
-	obj_Interaction $49 $0f $40 $38
-	obj_Interaction $49 $10 $40 $68
 	obj_End
 
 group0Map84ObjectData:
@@ -1235,8 +1227,6 @@ group0Map89ObjectData:
 	obj_End
 
 group0Map83ObjectData:
-	obj_Interaction $d5 $00 $28 $58
-	obj_Interaction $dc $02 $48 $38
 	obj_End
 
 group0Map8bObjectData:
@@ -1256,7 +1246,6 @@ group0Map91ObjectData:
 	obj_End
 
 group0Map92ObjectData:
-	obj_Interaction $6c $02 $28 $9f
 	obj_End
 
 group0Map94ObjectData:

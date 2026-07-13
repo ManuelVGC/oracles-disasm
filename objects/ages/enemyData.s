@@ -489,17 +489,12 @@ group0Map63EnemyObjectData:
 	obj_EndPointer
 
 group0Map73EnemyObjectData:
-	obj_RandomEnemy $40 $09 $00
 	obj_EndPointer
 
 group0Map74EnemyObjectData:
-	obj_RandomEnemy $20 $09 $00
-	obj_RandomEnemy $20 $09 $01
-	obj_RandomEnemy $20 $0c $00
 	obj_EndPointer
 
 group0Map84EnemyObjectData:
-	obj_RandomEnemy $20 $0c $00
 	obj_EndPointer
 
 group0Map94EnemyObjectData:

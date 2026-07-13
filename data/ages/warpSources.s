@@ -87,7 +87,6 @@ group0WarpSources:
 	m_StandardWarp $0 $76 $43 $4 $4
 	m_StandardWarp $0 $79 $18 $2 $4
 	m_StandardWarp $0 $7c $05 $2 $4
-	m_StandardWarp $0 $a3 $38 $3 $4
 	m_StandardWarp $0 $bd $31 $2 $4
 	m_StandardWarp $0 $c5 $27 $3 $4
 	m_StandardWarp $0 $cd $29 $2 $4

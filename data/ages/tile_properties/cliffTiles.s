@@ -24,6 +24,8 @@ cliffTilesTable:
 	.db $20, ANGLE_LEFT
 	.db $21, ANGLE_RIGHT
 	.db $84, ANGLE_DOWN
+	.db $81, ANGLE_DOWN
+	.db $80, ANGLE_DOWN
 	.db $ca, ANGLE_DOWN
 	.db $cb, ANGLE_DOWN
 	.db $cc, ANGLE_DOWN

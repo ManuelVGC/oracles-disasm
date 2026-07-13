@@ -19,7 +19,6 @@ chestDataGroupTable:
 chestGroup0Data:
 	m_ChestData $49, $51, TREASURE_OBJECT_RUPEES_04
 	m_ChestData $51, $49, TREASURE_OBJECT_RUPEES_04
-	m_ChestData $36, $84, TREASURE_OBJECT_RUPEES_05
 	m_ChestData $35, $91, TREASURE_OBJECT_RING_21
 	m_ChestData $25, $d5, TREASURE_OBJECT_RING_25
 	m_ChestData $12, $63, TREASURE_OBJECT_GASHA_SEED_01
