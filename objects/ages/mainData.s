@@ -38,7 +38,6 @@ group0Map93ObjectData:
 group0Map95ObjectData:
 group0Map96ObjectData:
 group0Map97ObjectData:
-group0Map9aObjectData:
 group0Map9bObjectData:
 group0Map9cObjectData:
 group0Map9dObjectData:
@@ -59,7 +58,6 @@ group0Mapb3ObjectData:
 group0Mapb4ObjectData:
 group0Mapb5ObjectData:
 group0Mapb6ObjectData:
-group0Mapb7ObjectData:
 group0MapbeObjectData:
 group0MapbfObjectData:
 group0Mapc0ObjectData:
@@ -85,7 +83,6 @@ group0Mape0ObjectData:
 group0Mape1ObjectData:
 group0Mape2ObjectData:
 group0Mape3ObjectData:
-group0Mape4ObjectData:
 group0Mape5ObjectData:
 group0Mape6ObjectData:
 group0Mape7ObjectData:
@@ -4850,5 +4847,16 @@ group5MapfbObjectData:
 
 group0Mapd5ObjectData:
 	obj_Interaction INTERAC_WINDMILL $00 $38 $28
-	obj_Interaction INTERAC_WINDMILL $00 $18 $28
+	obj_End
+
+group0Mapb7ObjectData:
+	obj_Interaction INTERAC_MISCELLANEOUS_1 $0e $30 $50
+	obj_End
+
+group0Map9aObjectData:
+	obj_Interaction INTERAC_WINDMILL $00 $18 $58
+	obj_End
+
+group0Mape4ObjectData:
+	obj_Interaction INTERAC_WINDMILL $00 $38 $28
 	obj_End

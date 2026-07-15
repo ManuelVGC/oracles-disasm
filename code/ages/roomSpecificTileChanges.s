@@ -95,7 +95,7 @@ roomTileChangerCodeGroup0Data:
 	.db $e0 $30
 	.db $e1 $31
 	.db $e2 $32
-	.db $98 $35
+	;.db $98 $35
 	.db $a5 $37
 	.db $76 $36
 	.db $00
